@@ -40,6 +40,7 @@ class TerapiaApp {
       glucoseChartCanvas: document.getElementById('glucoseChart'),
       chartScopeBtns: document.querySelectorAll('#chartScopeBtns button'),
       chartSub: document.getElementById('chartSub'),
+      syncRepoBtn: document.getElementById('syncRepoBtn'),
       glucoseChart: null
     };
 
@@ -50,12 +51,11 @@ class TerapiaApp {
   }
 
   init() {
-    if (this.entries.length === 0) {
-      this.loadDemoData();
-    }
     this.setupEventListeners();
     this.updateMedsDataList();
-    this.updateUI();
+    this.loadFromRepository().then(() => {
+      this.updateUI();
+    });
   }
 
   setupEventListeners() {
@@ -128,6 +128,19 @@ class TerapiaApp {
     window.onclick = (e) => {
       if (e.target === this.elements.entryModal) {
         this.elements.entryModal.style.display = 'none';
+      }
+    };
+    this.elements.syncRepoBtn.onclick = () => {
+      if (confirm('Vuoi aggiornare i dati dal file data.json? Questo unirà i nuovi dati senza cancellare i tuoi.')) {
+        this.loadFromRepository(true);
+      }
+    };
+
+    // Right-click sync button to export
+    this.elements.syncRepoBtn.oncontextmenu = (e) => {
+      e.preventDefault();
+      if (confirm('Vuoi generare una nuova versione di data.json da salvare nel repository?')) {
+        this.exportToRepository();
       }
     };
   }
@@ -901,6 +914,54 @@ class TerapiaApp {
     this.entries = demoEntries;
     localStorage.setItem('terapia_data', JSON.stringify(this.entries));
     this.updateUI();
+  }
+  async loadFromRepository(showToast = false) {
+    try {
+      const response = await fetch('data.json?t=' + Date.now());
+      if (response.ok) {
+        const fileContent = await response.json();
+        const initialCount = this.entries.length;
+        
+        // Merge entries, checking for duplicates by timestamp + value
+        fileContent.forEach(fileEntry => {
+          const exists = this.entries.some(e => 
+            e.timestamp === fileEntry.timestamp && 
+            e.type === fileEntry.type && 
+            e.value == fileEntry.value
+          );
+          if (!exists) {
+            this.entries.push(fileEntry);
+          }
+        });
+
+        localStorage.setItem('terapia_data', JSON.stringify(this.entries));
+        if (showToast) {
+          this.showToast(`Sincronizzato: ${this.entries.length - initialCount} nuovi record.`);
+          this.updateUI();
+        }
+      } else {
+        if (showToast) this.showToast("Impossibile trovare data.json nel repository.", "error");
+        if (this.entries.length === 0) this.loadDemoData();
+      }
+    } catch (e) {
+      console.warn("SincronizzazioneRepository:", e);
+      if (showToast) this.showToast("File data.json non accessibile.", "error");
+      if (this.entries.length === 0) this.loadDemoData();
+    }
+  }
+
+  exportToRepository() {
+    try {
+      const jsonContent = JSON.stringify(this.entries, null, 2);
+      const blob = new Blob([jsonContent], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'data.json';
+      link.click();
+      this.showToast("Database pronto. Salvalo nel repository sopra data.json");
+    } catch (e) {
+      this.showToast("Errore durante l'esportazione", "error");
+    }
   }
 }
 

@@ -1,0 +1,254 @@
+[
+  {
+    "id": "1774441430997",
+    "type": "med",
+    "value": "1",
+    "medName": "Tovastibe 10 mg / 40 mg",
+    "note": "",
+    "timestamp": 1774388580000,
+    "unit": "unità"
+  },
+  {
+    "id": "1774441290246",
+    "type": "med",
+    "value": "1",
+    "medName": "Invokana 300 mg",
+    "note": "",
+    "timestamp": 1774261140000,
+    "unit": "unità"
+  },
+  {
+    "id": "1774441840931",
+    "type": "med",
+    "value": "12",
+    "medName": "Toujeo 300 unità/ml",
+    "note": "",
+    "timestamp": 1774394100000,
+    "unit": "UI"
+  },
+  {
+    "id": "1774445434033",
+    "type": "med",
+    "value": "1",
+    "unit": "unità",
+    "medName": "Invokana 300 mg",
+    "note": "",
+    "timestamp": 1774433400000
+  },
+  {
+    "id": "1774445549930",
+    "type": "med",
+    "value": "1",
+    "unit": "unità",
+    "medName": "Tovastibe 10 mg / 40 mg",
+    "note": "",
+    "timestamp": 1774296900000
+  },
+  {
+    "id": "1774442347239",
+    "type": "med",
+    "value": "1",
+    "unit": "unità",
+    "medName": "Invokana 300 mg",
+    "note": "",
+    "timestamp": 1774340580000
+  },
+  {
+    "id": "1774446623918",
+    "type": "med",
+    "value": "12",
+    "unit": "UI",
+    "medName": "Toujeo 300 unità/ml",
+    "note": "",
+    "timestamp": 1774307280000
+  },
+  {
+    "id": "1774448638500",
+    "type": "glucose",
+    "value": "167",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1774339980000
+  },
+  {
+    "id": "1774449339038",
+    "type": "glucose",
+    "value": "211",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1774134180000
+  },
+  {
+    "id": "1774449431402",
+    "type": "glucose",
+    "value": "146",
+    "unit": "",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773993360000
+  },
+  {
+    "id": "1774451701796",
+    "type": "glucose",
+    "value": "135",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772352360000
+  },
+  {
+    "id": "1774451736692",
+    "type": "glucose",
+    "value": "220",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772395500000
+  },
+  {
+    "id": "1774451769314",
+    "type": "glucose",
+    "value": "99",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772464200000
+  },
+  {
+    "id": "1774452567811",
+    "type": "glucose",
+    "value": "197",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772492700000
+  },
+  {
+    "id": "1774452600157",
+    "type": "glucose",
+    "value": "173",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772526540000
+  },
+  {
+    "id": "1774452627722",
+    "type": "glucose",
+    "value": "196",
+    "unit": "",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772662320000
+  },
+  {
+    "id": "1774452656389",
+    "type": "glucose",
+    "value": "133",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772699040000
+  },
+  {
+    "id": "1774452714265",
+    "type": "glucose",
+    "value": "105",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772890260000
+  },
+  {
+    "id": "1774453907836",
+    "type": "glucose",
+    "value": "212",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1772997060000
+  },
+  {
+    "id": "1774454102411",
+    "type": "glucose",
+    "value": "208",
+    "unit": "",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773086220000
+  },
+  {
+    "id": "1774454128697",
+    "type": "glucose",
+    "value": "144",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773127320000
+  },
+  {
+    "id": "1774454205427",
+    "type": "glucose",
+    "value": "152",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773259740000
+  },
+  {
+    "id": "1774454240269",
+    "type": "glucose",
+    "value": "127",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773472440000
+  },
+  {
+    "id": "1774454344979",
+    "type": "glucose",
+    "value": "142",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773560640000
+  },
+  {
+    "id": "1774454379054",
+    "type": "glucose",
+    "value": "242",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773612360000
+  },
+  {
+    "id": "1774454407785",
+    "type": "glucose",
+    "value": "82",
+    "unit": "",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773668220000
+  },
+  {
+    "id": "1774454446490",
+    "type": "glucose",
+    "value": "146",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773818760000
+  },
+  {
+    "id": "1774454478923",
+    "type": "glucose",
+    "value": "194",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1773865380000
+  }
+]
