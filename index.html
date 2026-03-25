@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terapia | Monitoraggio Glicemia e Farmaci</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons Library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js for visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- SheetJS for Excel import -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- Header Section -->
+    <header>
+      <div class="brand">
+        <h1 class="gradient-text">Terapia</h1>
+        <p class="text-secondary">Salute & Benessere</p>
+      </div>
+      
+      <div class="date-picker-container glass-panel" id="datePickerList">
+        <!-- Date items will be injected here -->
+      </div>
+      
+      <div class="actions" style="display: flex; gap: 0.75rem;">
+        <button id="importBtn" class="secondary" title="Importa da Excel (XLSX/CSV)">
+          <i data-lucide="upload"></i>
+          <input type="file" id="importInput" style="display: none;" accept=".xlsx, .xls, .csv">
+        </button>
+        <button id="viewAllBtn" class="secondary" title="Mostra Storico Completo">
+          <i data-lucide="calendar"></i> Storico
+        </button>
+        <button id="addEntryBtn" class="primary">
+          <i data-lucide="plus"></i> Nuovo Dato
+        </button>
+      </div>
+    </header>
+
+    <!-- Today's Dashboard -->
+    <section class="dashboard-grid">
+      <div class="stat-card glass-panel">
+        <span class="stat-label">Media Glicemica</span>
+        <div class="stat-value" id="avgGlucose">--</div>
+        <p class="text-secondary">mg/dL per oggi</p>
+      </div>
+      
+      <div class="stat-card glass-panel">
+        <span class="stat-label">Farmaci Assunti</span>
+        <div class="stat-value" id="medsCount">0 / 0</div>
+        <p class="text-secondary">Pillole odierne</p>
+      </div>
+      
+      <div class="stat-card glass-panel">
+        <span class="stat-label">Stato odierno</span>
+        <div class="stat-value" id="statusIndicator">--</div>
+        <p class="text-secondary">Check-up giornaliero</p>
+      </div>
+    </section>
+
+    <!-- Chart Section -->
+    <section class="chart-section glass-panel" style="padding: 2rem; margin-bottom: 3rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h2 id="chartTitle">Andamento Glicemico</h2>
+          <p id="chartSub" class="text-secondary">Storico completo dei dati</p>
+        </div>
+        <div class="filter-btns" style="display: flex; gap: 0.5rem;" id="chartScopeBtns">
+          <button class="secondary btn-sm" data-scope="day">Oggi</button>
+          <button class="primary btn-sm" data-scope="all">Sempre</button>
+        </div>
+      </div>
+      <div style="height: 300px; width: 100%;">
+        <canvas id="glucoseChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Data Log Table (Excel style but better) -->
+    <section class="log-section glass-panel">
+      <div class="log-header">
+        <h2 id="logTitle">Cronologia Giornaliera</h2>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <button id="exportAllBtn" class="secondary btn-sm" title="Esporta CSV">
+            <i data-lucide="download" style="width: 14px;"></i>
+          </button>
+          <div class="filter-btns" style="display: flex; gap: 0.5rem;">
+            <button class="secondary btn-sm filter-active" data-filter="all">Tutti</button>
+            <button class="secondary btn-sm" data-filter="glucose">Glicemie</button>
+            <button class="secondary btn-sm" data-filter="meds">Farmaci</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="log-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 100px; text-align: center;">Data</th>
+              <th style="width: 80px; text-align: center;">Orario</th>
+              <th style="width: 100px;">Tipo</th>
+              <th>Dato / Dose</th>
+              <th>Note</th>
+              <th style="width: 80px;">Azioni</th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody">
+            <!-- Data will be injected here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Add Entry Modal -->
+  <div class="modal-overlay" id="entryModal">
+    <div class="modal glass-panel">
+      <div class="modal-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: start;">
+        <div>
+          <h2 id="modalTitle" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Nuovo Inserimento</h2>
+          <p id="modalSub" class="text-secondary">Aggiungi una lettura o un'assunzione</p>
+        </div>
+        <button class="secondary icon-btn close-modal" style="padding: 0.5rem;">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <form id="entryForm">
+        <div class="form-group">
+          <label>Tipo di Inserimento</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
+              <input type="radio" name="type" value="glucose" checked style="width: auto;"> Glicemia
+            </label>
+            <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
+              <input type="radio" name="type" value="med" style="width: auto;"> Farmaco
+            </label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label id="value-label">Valore (Glicemia)</label>
+          <div style="display: flex; gap: 0.5rem; align-items: stretch;">
+            <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1;">
+            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unità" style="width: 100px; padding: 0.75rem 0.5rem; text-align: center; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
+            <datalist id="unitsList">
+              <option value="mg/dL"></option>
+              <option value="ml"></option>
+              <option value="unità"></option>
+              <option value="UI"></option>
+            </datalist>
+          </div>
+        </div>
+        
+        <div class="form-group" id="med-name-group" style="display: none;">
+          <label>Nome Farmaco / Dose</label>
+          <input type="text" id="medName" placeholder="es. Metformina 500mg" list="medsList">
+          <datalist id="medsList"></datalist>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="entryDate" required>
+          </div>
+          <div class="form-group">
+            <label>Orario</label>
+            <input type="time" id="entryTime" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Note Opzionali</label>
+          <input type="text" id="entryNote" placeholder="Aggiungi una breve nota...">
+        </div>
+        
+        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+          <button type="submit" id="submitBtn" class="primary" style="flex: 1; justify-content: center;">Salva Dato</button>
+          <button type="button" class="secondary close-modal" style="flex: 1; justify-content: center;">Annulla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+  </script>
+</body>
+</html>
