@@ -15,7 +15,6 @@ class TerapiaApp {
       addEntryBtn: document.getElementById('addEntryBtn'),
       importBtn: document.getElementById('importBtn'),
       importInput: document.getElementById('importInput'),
-      viewAllBtn: document.getElementById('viewAllBtn'),
       exportAllBtn: document.getElementById('exportAllBtn'),
       logTitle: document.getElementById('logTitle'),
       entryModal: document.getElementById('entryModal'),
@@ -44,8 +43,8 @@ class TerapiaApp {
       glucoseChart: null
     };
 
-    this.viewAll = true; // Default to showing everything
-    this.chartScope = 'all'; // Default to showing all history in chart
+    this.viewAll = false; // Default to showing today
+    this.chartScope = 'day'; // Default to showing today in chart
     this.editingId = null;
     this.init();
   }
@@ -53,6 +52,7 @@ class TerapiaApp {
   init() {
     this.setupEventListeners();
     this.updateMedsDataList();
+    this.updateUnitsDataList('glucose');
     this.loadFromRepository().then(() => {
       this.updateUI();
     });
@@ -65,6 +65,7 @@ class TerapiaApp {
       this.elements.modalSub.innerText = "Aggiungi una lettura o un'assunzione";
       this.elements.submitBtn.innerText = "Salva Dato";
       this.elements.entryForm.reset();
+      this.toggleEntryType('glucose');
       this.elements.entryModal.style.display = 'flex';
       
       // Sync form with current dashboard date and time
@@ -75,13 +76,7 @@ class TerapiaApp {
       this.elements.entryForm.entryTime.value = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
-    this.elements.viewAllBtn.onclick = () => {
-      this.viewAll = !this.viewAll;
-      this.updateViewAllButton();
-      this.renderLog();
-    };
 
-    this.updateViewAllButton();
 
     this.elements.exportAllBtn.onclick = () => this.exportToCSV();
 
@@ -114,8 +109,10 @@ class TerapiaApp {
         btn.classList.remove('secondary');
         btn.classList.add('primary');
         this.chartScope = btn.dataset.scope;
+        this.viewAll = (this.chartScope === 'all');
         this.elements.chartSub.innerText = this.chartScope === 'day' ? "Valori rilevati oggi" : "Storico completo dei dati";
         this.updateDashboard();
+        this.renderLog();
       };
     });
 
@@ -130,6 +127,17 @@ class TerapiaApp {
         this.elements.entryModal.style.display = 'none';
       }
     };
+
+    // Ensure list shows up on focus/click for unitInput
+    if (this.elements.unitInput) {
+      this.elements.unitInput.onfocus = () => {
+        try { this.elements.unitInput.showPicker(); } catch(e) {}
+      };
+      this.elements.unitInput.onclick = () => {
+        try { this.elements.unitInput.showPicker(); } catch(e) {}
+      };
+    }
+
     this.elements.syncRepoBtn.onclick = () => {
       if (confirm('Vuoi aggiornare i dati dal file data.json? Questo unirà i nuovi dati senza cancellare i tuoi.')) {
         this.loadFromRepository(true);
@@ -150,20 +158,14 @@ class TerapiaApp {
       this.elements.medNameGroup.style.display = 'none';
       this.elements.valueLabel.innerText = 'Valore Glicemia';
       this.elements.entryValue.placeholder = 'es. 110';
-      this.elements.unitInput.value = 'mg/dL';
-      this.elements.unitsList.innerHTML = '<option value="mg/dL"></option>';
+      this.updateUnitsDataList('glucose');
       this.elements.entryValue.required = true;
       this.elements.medName.required = false;
     } else {
       this.elements.medNameGroup.style.display = 'block';
       this.elements.valueLabel.innerText = 'Dose / Quantità Farmaco';
       this.elements.entryValue.placeholder = 'es. 1';
-      this.elements.unitInput.value = 'ml'; // Default
-      this.elements.unitsList.innerHTML = `
-        <option value="ml"></option>
-        <option value="unità"></option>
-        <option value="UI"></option>
-      `;
+      this.updateUnitsDataList('med');
       this.elements.entryValue.required = false;
       this.elements.medName.required = true;
     }
@@ -174,15 +176,7 @@ class TerapiaApp {
     this.updateUI();
   }
 
-  updateViewAllButton() {
-    this.elements.viewAllBtn.classList.toggle('primary', this.viewAll);
-    this.elements.viewAllBtn.classList.toggle('secondary', !this.viewAll);
-    this.elements.viewAllBtn.innerHTML = this.viewAll ? 
-      `<i data-lucide="eye"></i> Solo Oggi` : 
-      `<i data-lucide="calendar"></i> Tutti i Dati`;
-    this.elements.logTitle.innerText = this.viewAll ? "Storico Completo" : "Cronologia Giornaliera";
-    lucide.createIcons();
-  }
+
 
   updateMedsDataList() {
     if (!this.elements.medsList) return;
@@ -195,6 +189,26 @@ class TerapiaApp {
     
     this.elements.medsList.innerHTML = names
       .map(name => `<option value="${name}">`)
+      .join('');
+  }
+
+  updateUnitsDataList(type) {
+    if (!this.elements.unitsList) return;
+
+    const defaultUnits = type === 'glucose' 
+      ? ['mg/dL', 'mmol/L'] 
+      : ['ml', 'mg', 'g', 'UI', 'mcg', 'unità', 'goccia', 'compressa', 'bustina', 'fiala', 'pillola', 'capsula', 'puff', 'penna'];
+
+    // Get unique units from entries for the specific type
+    const usedUnits = [...new Set(this.entries
+      .filter(e => e.type === type && e.unit)
+      .map(e => e.unit)
+    )];
+
+    const allUnits = [...new Set([...defaultUnits, ...usedUnits])].sort();
+
+    this.elements.unitsList.innerHTML = allUnits
+      .map(u => `<option value="${u}">`)
       .join('');
   }
 
@@ -236,6 +250,8 @@ class TerapiaApp {
       
       item.onclick = () => {
         this.currentDate = date;
+        this.viewAll = false;
+        this.chartScope = 'day';
         this.updateUI();
       };
       
@@ -259,6 +275,9 @@ class TerapiaApp {
 
   renderLog() {
     let filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
+    
+    // Update title
+    this.elements.logTitle.innerText = this.viewAll ? "Storico Completo" : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`;
     
     // Apply type filter
     if (this.currentFilter === 'glucose') {
@@ -666,6 +685,7 @@ class TerapiaApp {
     form.reset();
     this.elements.entryModal.style.display = 'none';
     this.updateMedsDataList();
+    this.updateUnitsDataList(type);
     this.updateUI();
   }
 

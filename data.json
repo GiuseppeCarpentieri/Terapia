@@ -6,7 +6,7 @@
     "medName": "Tovastibe 10 mg / 40 mg",
     "note": "",
     "timestamp": 1774388580000,
-    "unit": "unità"
+    "unit": "compressa"
   },
   {
     "id": "1774441290246",
@@ -15,7 +15,7 @@
     "medName": "Invokana 300 mg",
     "note": "",
     "timestamp": 1774261140000,
-    "unit": "unità"
+    "unit": "compressa"
   },
   {
     "id": "1774441840931",
@@ -30,7 +30,7 @@
     "id": "1774445434033",
     "type": "med",
     "value": "1",
-    "unit": "unità",
+    "unit": "compressa",
     "medName": "Invokana 300 mg",
     "note": "",
     "timestamp": 1774433400000
@@ -39,7 +39,7 @@
     "id": "1774445549930",
     "type": "med",
     "value": "1",
-    "unit": "unità",
+    "unit": "compressa",
     "medName": "Tovastibe 10 mg / 40 mg",
     "note": "",
     "timestamp": 1774296900000
@@ -48,7 +48,7 @@
     "id": "1774442347239",
     "type": "med",
     "value": "1",
-    "unit": "unità",
+    "unit": "compressa",
     "medName": "Invokana 300 mg",
     "note": "",
     "timestamp": 1774340580000
@@ -250,5 +250,59 @@
     "medName": "",
     "note": "",
     "timestamp": 1773865380000
+  },
+  {
+    "id": "1774543296154",
+    "type": "med",
+    "value": "1",
+    "unit": "compressa",
+    "medName": "Tovastibe 10 mg / 40 mg",
+    "note": "",
+    "timestamp": 1774472280000
+  },
+  {
+    "id": "1774543360129",
+    "type": "med",
+    "value": "12",
+    "unit": "UI",
+    "medName": "Toujeo 300 unità/ml",
+    "note": "",
+    "timestamp": 1774479480000
+  },
+  {
+    "id": "1774543685142",
+    "type": "glucose",
+    "value": "154",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1774466280000
+  },
+  {
+    "id": "1774544213741",
+    "type": "med",
+    "value": "1",
+    "unit": "compressa",
+    "medName": "Invokana 300 mg",
+    "note": "",
+    "timestamp": 1774514400000
+  },
+  {
+    "id": "1774544267706",
+    "type": "glucose",
+    "value": "239",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1774504680000
+  },
+  {
+    "id": "1774544301046",
+    "type": "glucose",
+    "value": "147",
+    "unit": "mg/dL",
+    "medName": "",
+    "note": "",
+    "timestamp": 1774505100000
   }
 ]

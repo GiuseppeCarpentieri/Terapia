@@ -36,9 +36,7 @@
         <button id="syncRepoBtn" class="secondary" title="Click: Carica da data.json | Tasto Destro: Salva su data.json">
           <i data-lucide="refresh-cw"></i> Sincronizza
         </button>
-        <button id="viewAllBtn" class="secondary" title="Mostra Storico Completo">
-          <i data-lucide="calendar"></i> Storico
-        </button>
+
         <button id="addEntryBtn" class="primary">
           <i data-lucide="plus"></i> Nuovo Dato
         </button>
@@ -67,8 +65,8 @@
     </section>
 
     <!-- Chart Section -->
-    <section class="chart-section glass-panel" style="padding: 2rem; margin-bottom: 3rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <section class="chart-section glass-panel" style="padding: 1.25rem; margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 1rem;">
         <div>
           <h2 id="chartTitle">Andamento Glicemico</h2>
           <p id="chartSub" class="text-secondary">Storico completo dei dati</p>
@@ -78,7 +76,7 @@
           <button class="primary btn-sm" data-scope="all">Sempre</button>
         </div>
       </div>
-      <div style="height: 300px; width: 100%;">
+      <div style="height: 200px; width: 100%;">
         <canvas id="glucoseChart"></canvas>
       </div>
     </section>
@@ -86,7 +84,7 @@
     <!-- Data Log Table (Excel style but better) -->
     <section class="log-section glass-panel">
       <div class="log-header">
-        <h2 id="logTitle">Cronologia Giornaliera</h2>
+        <h2 id="logTitle">Storico Completo</h2>
         <div style="display: flex; gap: 0.75rem; align-items: center;">
           <button id="exportAllBtn" class="secondary btn-sm" title="Esporta CSV">
             <i data-lucide="download" style="width: 14px;"></i>
@@ -122,9 +120,9 @@
   <!-- Add Entry Modal -->
   <div class="modal-overlay" id="entryModal">
     <div class="modal glass-panel">
-      <div class="modal-header" style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: start;">
+      <div class="modal-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: start;">
         <div>
-          <h2 id="modalTitle" style="font-size: 1.5rem; margin-bottom: 0.25rem;">Nuovo Inserimento</h2>
+          <h2 id="modalTitle" style="font-size: 1.25rem; margin-bottom: 0.25rem;">Nuovo Inserimento</h2>
           <p id="modalSub" class="text-secondary">Aggiungi una lettura o un'assunzione</p>
         </div>
         <button class="secondary icon-btn close-modal" style="padding: 0.5rem;">
@@ -181,7 +179,7 @@
           <input type="text" id="entryNote" placeholder="Aggiungi una breve nota...">
         </div>
         
-        <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
           <button type="submit" id="submitBtn" class="primary" style="flex: 1; justify-content: center;">Salva Dato</button>
           <button type="button" class="secondary close-modal" style="flex: 1; justify-content: center;">Annulla</button>
         </div>
