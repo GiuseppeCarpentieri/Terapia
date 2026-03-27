@@ -315,7 +315,13 @@ class TerapiaApp {
     let filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
     
     // Update title
-    this.elements.logTitle.innerText = this.viewAll ? "Storico Completo" : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`;
+    let titleText = "Storico Completo";
+    if (this.viewAll && this.entries.length > 0) {
+      const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
+      const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      titleText = `Storico Completo dal ${startDate}`;
+    }
+    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`;
     
     // Apply type filter
     if (this.currentFilter === 'glucose') {
