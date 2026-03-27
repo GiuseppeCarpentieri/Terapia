@@ -89,7 +89,10 @@
           <button id="exportAllBtn" class="secondary btn-sm" title="Esporta CSV">
             <i data-lucide="download" style="width: 14px;"></i>
           </button>
-          <div class="filter-btns" style="display: flex; gap: 0.5rem;">
+          <div class="filter-btns" style="display: flex; gap: 0.5rem; align-items: center;">
+            <select id="medFilterSelect" class="secondary" style="display: none; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--glass-border); background: rgba(30, 41, 59, 0.7); color: var(--text-primary); outline: none;">
+              <option value="">Tutti i farmaci</option>
+            </select>
             <button class="secondary btn-sm filter-active" data-filter="all">Tutti</button>
             <button class="secondary btn-sm" data-filter="glucose">Glicemie</button>
             <button class="secondary btn-sm" data-filter="meds">Farmaci</button>
@@ -135,10 +138,10 @@
           <label>Tipo di Inserimento</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
-              <input type="radio" name="type" value="glucose" checked style="width: auto;"> Glicemia
+              <input type="radio" name="type" value="med" checked style="width: auto;"> Farmaco
             </label>
             <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
-              <input type="radio" name="type" value="med" style="width: auto;"> Farmaco
+              <input type="radio" name="type" value="glucose" style="width: auto;"> Glicemia
             </label>
           </div>
         </div>
@@ -146,8 +149,8 @@
         <div class="form-group">
           <label id="value-label">Valore (Glicemia)</label>
           <div style="display: flex; gap: 0.5rem; align-items: stretch;">
-            <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1;">
-            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unità" style="width: 100px; padding: 0.75rem 0.5rem; text-align: center; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
+            <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1; text-align: left;">
+            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unità" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
             <datalist id="unitsList">
               <option value="mg/dL"></option>
               <option value="ml"></option>

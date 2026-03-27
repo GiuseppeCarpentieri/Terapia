@@ -113,6 +113,16 @@ header {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 1rem;
+  margin: -1rem -1rem 1.5rem -1rem;
+  background: var(--bg-dark);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+  background-attachment: fixed;
 }
 
 /* Date Picker Horizontal List */
@@ -326,6 +336,18 @@ input, select {
 input:focus {
   border-color: var(--accent-primary);
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* Hide number input spinners/arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Toast Notifications */

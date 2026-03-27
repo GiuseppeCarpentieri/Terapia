@@ -19,6 +19,7 @@ class TerapiaApp {
       logTitle: document.getElementById('logTitle'),
       entryModal: document.getElementById('entryModal'),
       entryForm: document.getElementById('entryForm'),
+      medFilterSelect: document.getElementById('medFilterSelect'),
       filterBtns: document.querySelectorAll('.filter-btns button'),
       logTbody: document.getElementById('log-tbody'),
       avgGlucose: document.getElementById('avgGlucose'),
@@ -43,8 +44,9 @@ class TerapiaApp {
       glucoseChart: null
     };
 
-    this.viewAll = false; // Default to showing today
-    this.chartScope = 'day'; // Default to showing today in chart
+    this.viewAll = true; // Default to showing all
+    this.chartScope = 'all'; // Default to showing all in chart
+    this.currentMedFilter = '';
     this.editingId = null;
     this.init();
   }
@@ -65,7 +67,7 @@ class TerapiaApp {
       this.elements.modalSub.innerText = "Aggiungi una lettura o un'assunzione";
       this.elements.submitBtn.innerText = "Salva Dato";
       this.elements.entryForm.reset();
-      this.toggleEntryType('glucose');
+      this.toggleEntryType('med');
       this.elements.entryModal.style.display = 'flex';
       
       // Sync form with current dashboard date and time
@@ -84,15 +86,40 @@ class TerapiaApp {
     this.elements.importInput.onchange = (e) => this.handleImport(e);
 
     this.elements.filterBtns.forEach(btn => {
+      // Skip chart scope buttons if query selected them
+      if (btn.hasAttribute('data-scope')) return;
       btn.onclick = () => {
-        this.elements.filterBtns.forEach(b => b.classList.remove('primary'));
-        this.elements.filterBtns.forEach(b => b.classList.add('secondary'));
+        const logBtns = Array.from(this.elements.filterBtns).filter(b => b.hasAttribute('data-filter'));
+        logBtns.forEach(b => b.classList.remove('primary'));
+        logBtns.forEach(b => b.classList.add('secondary'));
         btn.classList.remove('secondary');
         btn.classList.add('primary');
         this.currentFilter = btn.dataset.filter;
+        
+        // Show or hide medication select dropdown
+        if (this.currentFilter === 'meds') {
+          if (this.elements.medFilterSelect) {
+            this.elements.medFilterSelect.style.display = 'block';
+            this.populateMedFilter();
+          }
+        } else {
+          if (this.elements.medFilterSelect) {
+            this.elements.medFilterSelect.style.display = 'none';
+            this.currentMedFilter = '';
+            this.elements.medFilterSelect.value = '';
+          }
+        }
+        
         this.renderLog();
       };
     });
+
+    if (this.elements.medFilterSelect) {
+      this.elements.medFilterSelect.onchange = (e) => {
+        this.currentMedFilter = e.target.value;
+        this.renderLog();
+      };
+    }
 
     this.elements.closeModalBtns.forEach(btn => {
       btn.onclick = () => this.elements.entryModal.style.display = 'none';
@@ -190,24 +217,35 @@ class TerapiaApp {
     this.elements.medsList.innerHTML = names
       .map(name => `<option value="${name}">`)
       .join('');
+      
+    this.populateMedFilter();
+  }
+
+  populateMedFilter() {
+    if (!this.elements.medFilterSelect) return;
+    const names = [...new Set(this.entries
+      .filter(e => e.type === 'med' && e.medName)
+      .map(e => e.medName)
+    )].sort();
+    
+    const currentVal = this.currentMedFilter;
+    
+    this.elements.medFilterSelect.innerHTML = '<option value="">Tutti i farmaci</option>' + 
+      names.map(name => `<option value="${name}">${name}</option>`).join('');
+      
+    this.elements.medFilterSelect.value = currentVal;
   }
 
   updateUnitsDataList(type) {
     if (!this.elements.unitsList) return;
 
-    const defaultUnits = type === 'glucose' 
-      ? ['mg/dL', 'mmol/L'] 
-      : ['ml', 'mg', 'g', 'UI', 'mcg', 'unità', 'goccia', 'compressa', 'bustina', 'fiala', 'pillola', 'capsula', 'puff', 'penna'];
-
     // Get unique units from entries for the specific type
     const usedUnits = [...new Set(this.entries
       .filter(e => e.type === type && e.unit)
       .map(e => e.unit)
-    )];
+    )].sort();
 
-    const allUnits = [...new Set([...defaultUnits, ...usedUnits])].sort();
-
-    this.elements.unitsList.innerHTML = allUnits
+    this.elements.unitsList.innerHTML = usedUnits
       .map(u => `<option value="${u}">`)
       .join('');
   }
@@ -284,6 +322,9 @@ class TerapiaApp {
       filteredEntries = filteredEntries.filter(e => e.type === 'glucose');
     } else if (this.currentFilter === 'meds') {
       filteredEntries = filteredEntries.filter(e => e.type === 'med');
+      if (this.currentMedFilter) {
+        filteredEntries = filteredEntries.filter(e => e.medName === this.currentMedFilter);
+      }
     }
 
     // Sort by time (reverse chronological)
