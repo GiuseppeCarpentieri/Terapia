@@ -961,5 +961,14 @@
     "medName": "Mounjaro 5 mg",
     "note": "",
     "timestamp": 1774256400000
+  },
+  {
+    "id": "1774648351453",
+    "type": "med",
+    "value": "1",
+    "unit": "compressa",
+    "medName": "Tovastibe 10 mg / 40 mg",
+    "note": "",
+    "timestamp": 1774644600000
   }
 ]
