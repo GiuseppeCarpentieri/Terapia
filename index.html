@@ -84,12 +84,12 @@
 
     <!-- Chart Section -->
     <section class="chart-section glass-panel" style="padding: 1.25rem; margin-bottom: 1.5rem;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 1rem;">
+      <div class="chart-header">
         <div>
           <h2 id="chartTitle">Andamento Glicemico</h2>
           <p id="chartSub" class="text-secondary">Storico completo dei dati</p>
         </div>
-        <div class="filter-btns" style="display: flex; gap: 0.5rem;" id="chartScopeBtns">
+        <div class="filter-btns chart-filter-btns" id="chartScopeBtns">
           <button class="secondary btn-sm" data-scope="day">Oggi</button>
           <button class="primary btn-sm" data-scope="all">Sempre</button>
         </div>
@@ -103,11 +103,11 @@
     <section class="log-section glass-panel">
       <div class="log-header">
         <h2 id="logTitle">Storico Completo</h2>
-        <div style="display: flex; gap: 0.75rem; align-items: center;">
+        <div class="log-controls">
           <button id="exportAllBtn" class="secondary btn-sm" title="Esporta CSV">
             <i data-lucide="download" style="width: 14px;"></i>
           </button>
-          <div class="filter-btns" style="display: flex; gap: 0.5rem; align-items: center;">
+          <div class="filter-btns log-filter-btns">
             <select id="medFilterSelect" class="secondary" style="display: none; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--glass-border); background: rgba(30, 41, 59, 0.7); color: var(--text-primary); outline: none;">
               <option value="">Tutti i farmaci</option>
             </select>
@@ -154,7 +154,7 @@
       <form id="entryForm">
         <div class="form-group">
           <label>Tipo di Inserimento</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div class="entry-type-grid">
             <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
               <input type="radio" name="type" value="med" checked style="width: auto;"> Farmaco
             </label>
@@ -166,7 +166,7 @@
         
         <div class="form-group">
           <label id="value-label">Valore (Glicemia)</label>
-          <div style="display: flex; gap: 0.5rem; align-items: stretch;">
+          <div class="value-input-row">
             <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1; text-align: left;">
             <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unità" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
             <datalist id="unitsList">
@@ -184,7 +184,7 @@
           <datalist id="medsList"></datalist>
         </div>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="date-time-grid">
           <div class="form-group">
             <label>Data</label>
             <input type="date" id="entryDate" required>
@@ -200,7 +200,7 @@
           <input type="text" id="entryNote" placeholder="Aggiungi una breve nota...">
         </div>
         
-        <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+        <div class="modal-actions">
           <button type="submit" id="submitBtn" class="primary" style="flex: 1; justify-content: center;">Salva Dato</button>
           <button type="button" class="secondary close-modal" style="flex: 1; justify-content: center;">Annulla</button>
         </div>
