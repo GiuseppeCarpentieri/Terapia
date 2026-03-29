@@ -3,7 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#10b981">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Terapia">
   <title>Terapia | Monitoraggio Glicemia e Farmaci</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -47,6 +56,9 @@
       </div>
       
       <div class="actions" style="display: flex; gap: 0.75rem;">
+        <button id="installAppBtn" class="secondary" title="Installa l'app sul dispositivo" hidden>
+          <i data-lucide="download"></i> Installa app
+        </button>
         <button id="importBtn" class="secondary" title="Importa da Excel (XLSX/CSV)">
           <i data-lucide="upload"></i>
           <input type="file" id="importInput" style="display: none;" accept=".xlsx, .xls, .csv">

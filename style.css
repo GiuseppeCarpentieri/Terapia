@@ -51,6 +51,13 @@ body {
   padding: 1rem;
 }
 
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 /* Glassmorphism Utility */
 .glass-panel {
   background: var(--bg-card);
@@ -383,9 +390,20 @@ input[type="number"] {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
+
   header {
     flex-direction: column;
     gap: 1.5rem;
     align-items: flex-start;
+  }
+
+  .actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .actions button {
+    flex: 1 1 calc(50% - 0.75rem);
+    justify-content: center;
   }
 }

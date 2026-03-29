@@ -24,10 +24,13 @@ class TerapiaApp {
     this.currentUserId = null;
     this.unsubscribeFirestore = null;
     this._migrationChecked = false;
+    this.deferredInstallPrompt = null;
+    this.isPwaInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 
     this.elements = {
       datePickerList: document.getElementById('datePickerList'),
       addEntryBtn: document.getElementById('addEntryBtn'),
+      installAppBtn: document.getElementById('installAppBtn'),
       importBtn: document.getElementById('importBtn'),
       importInput: document.getElementById('importInput'),
       exportAllBtn: document.getElementById('exportAllBtn'),
@@ -63,7 +66,34 @@ class TerapiaApp {
     this.chartScope = 'all';
     this.currentMedFilter = '';
     this.editingId = null;
+    this.setupPwaInstall();
     this.initFirebase();
+  }
+
+  setupPwaInstall() {
+    if (!this.elements.installAppBtn) return;
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      this.deferredInstallPrompt = event;
+      this.updateInstallButton();
+    });
+
+    window.addEventListener('appinstalled', () => {
+      this.isPwaInstalled = true;
+      this.deferredInstallPrompt = null;
+      this.updateInstallButton();
+      this.showToast('App installata sul dispositivo');
+    });
+
+    this.updateInstallButton();
+  }
+
+  updateInstallButton() {
+    if (!this.elements.installAppBtn) return;
+
+    const shouldShow = Boolean(this.deferredInstallPrompt) && !this.isPwaInstalled;
+    this.elements.installAppBtn.hidden = !shouldShow;
   }
 
   // ===== AUTH =====
@@ -161,6 +191,9 @@ class TerapiaApp {
     };
 
     this.elements.exportAllBtn.onclick = () => this.exportToCSV();
+    if (this.elements.installAppBtn) {
+      this.elements.installAppBtn.onclick = () => this.installPwa();
+    }
     this.elements.importBtn.onclick = () => this.elements.importInput.click();
     this.elements.importInput.onchange = (e) => this.handleImport(e);
 
@@ -246,6 +279,27 @@ class TerapiaApp {
       e.preventDefault();
       this.exportToCSV();
     };
+  }
+
+  async installPwa() {
+    if (this.isPwaInstalled) {
+      this.showToast('App gia installata');
+      return;
+    }
+
+    if (!this.deferredInstallPrompt) {
+      this.showToast('Installazione non disponibile da questo browser', 'error');
+      return;
+    }
+
+    this.deferredInstallPrompt.prompt();
+    const { outcome } = await this.deferredInstallPrompt.userChoice;
+    this.deferredInstallPrompt = null;
+    this.updateInstallButton();
+
+    if (outcome !== 'accepted') {
+      this.showToast('Installazione annullata', 'error');
+    }
   }
 
   // ===== UI METHODS =====
@@ -804,4 +858,10 @@ class TerapiaApp {
 
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new TerapiaApp();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
+      console.error('Service worker registration failed:', error);
+    });
+  }
 });
