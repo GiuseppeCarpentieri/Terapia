@@ -1,15 +1,30 @@
 /**
- * Terapia App - Core Logic
- * Handles data management, date navigation and UI updates.
+ * Terapia App - Firebase Firestore Edition
+ * Sincronizzazione real-time su tutti i dispositivi.
  */
+
+// ===== FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyCLxYvfbNl6bMlot7xx1vOH-BjYGWgg3fM",
+  authDomain: "terapia-dd6c3.firebaseapp.com",
+  projectId: "terapia-dd6c3",
+  storageBucket: "terapia-dd6c3.firebasestorage.app",
+  messagingSenderId: "574810885658",
+  appId: "1:574810885658:web:40c0e1139a23c702f1cba3"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
 class TerapiaApp {
   constructor() {
     this.currentDate = new Date();
     this.currentFilter = 'all';
-    this.entries = JSON.parse(localStorage.getItem('terapia_data')) || [];
-    
-    // UI Elements
+    this.entries = [];
+    this.currentUserId = null;
+    this.unsubscribeFirestore = null;
+    this._migrationChecked = false;
+
     this.elements = {
       datePickerList: document.getElementById('datePickerList'),
       addEntryBtn: document.getElementById('addEntryBtn'),
@@ -44,22 +59,92 @@ class TerapiaApp {
       glucoseChart: null
     };
 
-    this.viewAll = true; // Default to showing all
-    this.chartScope = 'all'; // Default to showing all in chart
+    this.viewAll = true;
+    this.chartScope = 'all';
     this.currentMedFilter = '';
     this.editingId = null;
-    this.init();
+    this.initFirebase();
   }
 
-  init() {
-    this.setupEventListeners();
-    this.updateMedsDataList();
-    this.updateUnitsDataList('glucose');
-    this.loadFromRepository().then(() => {
-      this.updateUI();
+  // ===== AUTH =====
+  initFirebase() {
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        this.currentUserId = user.uid;
+        this.showApp(user);
+        this.setupEventListeners();
+        this.updateMedsDataList();
+        this.updateUnitsDataList('glucose');
+        this.setupFirestoreListener();
+      } else {
+        this.showLoginScreen();
+      }
     });
   }
 
+  showLoginScreen() {
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('googleSignInBtn').onclick = () => this.signInWithGoogle();
+  }
+
+  showApp(user) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+    this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> ${name}`;
+    lucide.createIcons();
+  }
+
+  signInWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(err => {
+      console.error(err);
+      alert('Errore durante l\'accesso. Riprova.');
+    });
+  }
+
+  // ===== FIRESTORE =====
+  setupFirestoreListener() {
+    if (this.unsubscribeFirestore) this.unsubscribeFirestore();
+    this.unsubscribeFirestore = db
+      .collection('users').doc(this.currentUserId).collection('entries')
+      .onSnapshot(snapshot => {
+        this.entries = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        this.updateUI();
+        this.checkLocalStorageMigration();
+      }, error => {
+        console.error('Firestore error:', error);
+        this.showToast('Errore di connessione al cloud', 'error');
+      });
+  }
+
+  async checkLocalStorageMigration() {
+    if (this._migrationChecked) return;
+    this._migrationChecked = true;
+    const localData = JSON.parse(localStorage.getItem('terapia_data')) || [];
+    if (localData.length > 0 && this.entries.length === 0) {
+      if (confirm(`Trovati ${localData.length} dati salvati localmente sul PC.\nVuoi importarli su Firebase per averli su tutti i dispositivi?`)) {
+        try {
+          const batch = db.batch();
+          localData.forEach(entry => {
+            const ref = db.collection('users').doc(this.currentUserId).collection('entries').doc(entry.id);
+            batch.set(ref, entry);
+          });
+          await batch.commit();
+          localStorage.removeItem('terapia_data');
+          this.showToast(`${localData.length} dati migrati su Firebase! ☁️`);
+        } catch (e) {
+          console.error(e);
+          this.showToast('Errore durante la migrazione', 'error');
+        }
+      }
+    }
+  }
+
+  userCol() {
+    return db.collection('users').doc(this.currentUserId).collection('entries');
+  }
+
+  // ===== EVENT LISTENERS =====
   setupEventListeners() {
     this.elements.addEntryBtn.onclick = () => {
       this.editingId = null;
@@ -69,24 +154,17 @@ class TerapiaApp {
       this.elements.entryForm.reset();
       this.toggleEntryType('med');
       this.elements.entryModal.style.display = 'flex';
-      
-      // Sync form with current dashboard date and time
       const dateStr = this.currentDate.toISOString().split('T')[0];
       document.getElementById('entryDate').value = dateStr;
-      
       const now = new Date();
       this.elements.entryForm.entryTime.value = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
-
-
     this.elements.exportAllBtn.onclick = () => this.exportToCSV();
-
     this.elements.importBtn.onclick = () => this.elements.importInput.click();
     this.elements.importInput.onchange = (e) => this.handleImport(e);
 
     this.elements.filterBtns.forEach(btn => {
-      // Skip chart scope buttons if query selected them
       if (btn.hasAttribute('data-scope')) return;
       btn.onclick = () => {
         const logBtns = Array.from(this.elements.filterBtns).filter(b => b.hasAttribute('data-filter'));
@@ -95,8 +173,6 @@ class TerapiaApp {
         btn.classList.remove('secondary');
         btn.classList.add('primary');
         this.currentFilter = btn.dataset.filter;
-        
-        // Show or hide medication select dropdown
         if (this.currentFilter === 'meds') {
           if (this.elements.medFilterSelect) {
             this.elements.medFilterSelect.style.display = 'block';
@@ -109,7 +185,6 @@ class TerapiaApp {
             this.elements.medFilterSelect.value = '';
           }
         }
-        
         this.renderLog();
       };
     });
@@ -148,38 +223,32 @@ class TerapiaApp {
       this.saveEntry();
     };
 
-    // Close modal on click outside
     window.onclick = (e) => {
       if (e.target === this.elements.entryModal) {
         this.elements.entryModal.style.display = 'none';
       }
     };
 
-    // Ensure list shows up on focus/click for unitInput
     if (this.elements.unitInput) {
-      this.elements.unitInput.onfocus = () => {
-        try { this.elements.unitInput.showPicker(); } catch(e) {}
-      };
-      this.elements.unitInput.onclick = () => {
-        try { this.elements.unitInput.showPicker(); } catch(e) {}
-      };
+      this.elements.unitInput.onfocus = () => { try { this.elements.unitInput.showPicker(); } catch(e) {} };
+      this.elements.unitInput.onclick = () => { try { this.elements.unitInput.showPicker(); } catch(e) {} };
     }
 
+    // Sync button = cloud status / sign out
     this.elements.syncRepoBtn.onclick = () => {
-      if (confirm('Vuoi aggiornare i dati dal file data.json? Questo unirà i nuovi dati senza cancellare i tuoi.')) {
-        this.loadFromRepository(true);
+      const user = auth.currentUser;
+      if (user && confirm(`Connesso come ${user.email}\n\nVuoi disconnetterti?`)) {
+        if (this.unsubscribeFirestore) this.unsubscribeFirestore();
+        auth.signOut();
       }
     };
-
-    // Right-click sync button to export
     this.elements.syncRepoBtn.oncontextmenu = (e) => {
       e.preventDefault();
-      if (confirm('Vuoi generare una nuova versione di data.json da salvare nel repository?')) {
-        this.exportToRepository();
-      }
+      this.exportToCSV();
     };
   }
 
+  // ===== UI METHODS =====
   toggleEntryType(type) {
     if (type === 'glucose') {
       this.elements.medNameGroup.style.display = 'none';
@@ -203,80 +272,46 @@ class TerapiaApp {
     this.updateUI();
   }
 
-
-
   updateMedsDataList() {
     if (!this.elements.medsList) return;
-    
-    // Get unique med names from entries
-    const names = [...new Set(this.entries
-      .filter(e => e.type === 'med' && e.medName)
-      .map(e => e.medName)
-    )].sort();
-    
-    this.elements.medsList.innerHTML = names
-      .map(name => `<option value="${name}">`)
-      .join('');
-      
+    const names = [...new Set(this.entries.filter(e => e.type === 'med' && e.medName).map(e => e.medName))].sort();
+    this.elements.medsList.innerHTML = names.map(name => `<option value="${name}">`).join('');
     this.populateMedFilter();
   }
 
   populateMedFilter() {
     if (!this.elements.medFilterSelect) return;
-    const names = [...new Set(this.entries
-      .filter(e => e.type === 'med' && e.medName)
-      .map(e => e.medName)
-    )].sort();
-    
+    const names = [...new Set(this.entries.filter(e => e.type === 'med' && e.medName).map(e => e.medName))].sort();
     const currentVal = this.currentMedFilter;
-    
-    this.elements.medFilterSelect.innerHTML = '<option value="">Tutti i farmaci</option>' + 
+    this.elements.medFilterSelect.innerHTML = '<option value="">Tutti i farmaci</option>' +
       names.map(name => `<option value="${name}">${name}</option>`).join('');
-      
     this.elements.medFilterSelect.value = currentVal;
   }
 
   updateUnitsDataList(type) {
     if (!this.elements.unitsList) return;
-
-    // Get unique units from entries for the specific type
-    const usedUnits = [...new Set(this.entries
-      .filter(e => e.type === type && e.unit)
-      .map(e => e.unit)
-    )].sort();
-
-    this.elements.unitsList.innerHTML = usedUnits
-      .map(u => `<option value="${u}">`)
-      .join('');
+    const usedUnits = [...new Set(this.entries.filter(e => e.type === type && e.unit).map(e => e.unit))].sort();
+    this.elements.unitsList.innerHTML = usedUnits.map(u => `<option value="${u}">`).join('');
   }
 
   renderDateList() {
     if (!this.elements.datePickerList) return;
-    
     const dateSet = new Set();
     const today = new Date();
     today.setHours(0,0,0,0);
-
     for(let i = -7; i <= 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       dateSet.add(d.toDateString());
     }
-
-    this.entries.forEach(e => {
-      dateSet.add(new Date(e.timestamp).toDateString());
-    });
-
+    this.entries.forEach(e => { dateSet.add(new Date(e.timestamp).toDateString()); });
     const sortedDates = Array.from(dateSet).map(ds => new Date(ds)).sort((a,b) => a - b);
     this.elements.datePickerList.innerHTML = '';
-    
     sortedDates.forEach(date => {
       const isToday = date.toDateString() === today.toDateString();
       const isActive = date.toDateString() === this.currentDate.toDateString();
-      
       const item = document.createElement('div');
       item.className = `date-item ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}`;
-      
       const dayName = date.toLocaleDateString('it-IT', { weekday: 'short' });
       const monthName = date.toLocaleDateString('it-IT', { month: 'short' });
       const dayNum = date.getDate();
@@ -285,14 +320,12 @@ class TerapiaApp {
         <span class="date-number">${dayNum}</span>
         <span class="date-month">${monthName}</span>
       `;
-      
       item.onclick = () => {
         this.currentDate = date;
         this.viewAll = false;
         this.chartScope = 'day';
         this.updateUI();
       };
-      
       this.elements.datePickerList.appendChild(item);
       if (isActive) {
         setTimeout(() => item.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }), 100);
@@ -313,8 +346,6 @@ class TerapiaApp {
 
   renderLog() {
     let filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
-    
-    // Update title
     let titleText = "Storico Completo";
     if (this.viewAll && this.entries.length > 0) {
       const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
@@ -322,8 +353,7 @@ class TerapiaApp {
       titleText = `Storico Completo dal ${startDate}`;
     }
     this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`;
-    
-    // Apply type filter
+
     if (this.currentFilter === 'glucose') {
       filteredEntries = filteredEntries.filter(e => e.type === 'glucose');
     } else if (this.currentFilter === 'meds') {
@@ -333,11 +363,9 @@ class TerapiaApp {
       }
     }
 
-    // Sort by time (reverse chronological)
     filteredEntries.sort((a, b) => b.timestamp - a.timestamp);
-
     this.elements.logTbody.innerHTML = '';
-    
+
     if (filteredEntries.length === 0) {
       this.elements.logTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Nessun dato trovato.</td></tr>`;
       return;
@@ -347,27 +375,18 @@ class TerapiaApp {
     filteredEntries.forEach(entry => {
       const entryDate = new Date(entry.timestamp);
       const dateTag = entryDate.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-      
-      // Add Date Header if it's the first entry for this date in the view
       if (this.viewAll && dateTag !== lastDateTag) {
         const headerTr = document.createElement('tr');
-        headerTr.innerHTML = `
-          <td colspan="6" style="background: rgba(255,255,255,0.02); padding: 0.6rem 1.5rem; text-transform: uppercase; font-size: 0.725rem; letter-spacing: 0.05em; color: var(--accent-primary); font-weight: 800;">
-            ${dateTag}
-          </td>
-        `;
+        headerTr.innerHTML = `<td colspan="6" style="background: rgba(255,255,255,0.02); padding: 0.6rem 1.5rem; text-transform: uppercase; font-size: 0.725rem; letter-spacing: 0.05em; color: var(--accent-primary); font-weight: 800;">${dateTag}</td>`;
         this.elements.logTbody.appendChild(headerTr);
         lastDateTag = dateTag;
       }
-
       const time = entryDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
       const tr = document.createElement('tr');
-      tr.draggable = true; 
+      tr.draggable = true;
       tr.classList.add('draggable-row');
       tr.dataset.id = entry.id;
-      
       const isGlucose = entry.type === 'glucose';
-      
       tr.innerHTML = `
         <td style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</td>
         <td style="font-weight: 600; text-align: center;">${time}</td>
@@ -393,128 +412,87 @@ class TerapiaApp {
       this.elements.logTbody.appendChild(tr);
     });
 
-    // Re-initialize icons for new rows
     lucide.createIcons();
-
-    // Setup drag and drop
     this.setupDragAndDrop();
 
-    // Setup action buttons
     document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.onclick = (e) => this.editEntry(btn.dataset.id);
+      btn.onclick = () => this.editEntry(btn.dataset.id);
     });
-    
     document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = (e) => this.deleteEntry(btn.dataset.id);
+      btn.onclick = () => this.deleteEntry(btn.dataset.id);
     });
   }
 
   setupDragAndDrop() {
     const rows = document.querySelectorAll('.draggable-row');
     let draggedId = null;
-
     rows.forEach(row => {
       row.addEventListener('dragstart', (e) => {
         draggedId = row.dataset.id;
         row.style.opacity = '0.4';
         e.dataTransfer.effectAllowed = 'move';
       });
-
-      row.addEventListener('dragend', (e) => {
+      row.addEventListener('dragend', () => {
         row.style.opacity = '1';
         rows.forEach(r => r.classList.remove('drag-over'));
       });
-
-      row.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        return false;
-      });
-
-      row.addEventListener('dragenter', (e) => {
-        row.classList.add('drag-over');
-      });
-
-      row.addEventListener('dragleave', (e) => {
-        row.classList.remove('drag-over');
-      });
-
+      row.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; });
+      row.addEventListener('dragenter', () => { row.classList.add('drag-over'); });
+      row.addEventListener('dragleave', () => { row.classList.remove('drag-over'); });
       row.addEventListener('drop', (e) => {
         e.stopPropagation();
         const targetId = row.dataset.id;
-        if (draggedId !== targetId) {
-          this.reorderEntries(draggedId, targetId);
-        }
+        if (draggedId !== targetId) this.reorderEntries(draggedId, targetId);
         return false;
       });
     });
   }
 
-  reorderEntries(sourceId, targetId) {
-    // Get the current list (preserving the sort order used for rendering)
+  async reorderEntries(sourceId, targetId) {
     let list = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
-    list.sort((a, b) => b.timestamp - a.timestamp); // Most recent first
-    
+    list.sort((a, b) => b.timestamp - a.timestamp);
     const sourceIdx = list.findIndex(e => e.id === sourceId);
     const targetIdx = list.findIndex(e => e.id === targetId);
-    
     if (sourceIdx === -1 || targetIdx === -1) return;
-
-    // Move in local list
     const [movedEntry] = list.splice(sourceIdx, 1);
     list.splice(targetIdx, 0, movedEntry);
-    
-    // Calculate new timestamp to persist the order
     const prev = list[targetIdx - 1];
     const next = list[targetIdx + 1];
-    
     let newTimestamp;
     if (prev && next) {
-      // Put exactly in the middle
       newTimestamp = Math.floor((prev.timestamp + next.timestamp) / 2);
     } else if (prev) {
-      // Put right below prev (slightly older)
       newTimestamp = prev.timestamp - 1000;
     } else if (next) {
-      // Put right above next (slightly newer)
       newTimestamp = next.timestamp + 1000;
     } else {
       newTimestamp = movedEntry.timestamp;
     }
-
-    // Find in main entries and update
-    const mainIdx = this.entries.findIndex(e => e.id === sourceId);
-    if (mainIdx !== -1) {
-      this.entries[mainIdx].timestamp = newTimestamp;
+    try {
+      await this.userCol().doc(sourceId).update({ timestamp: newTimestamp });
+    } catch (e) {
+      console.error('Reorder error:', e);
     }
-    
-    localStorage.setItem('terapia_data', JSON.stringify(this.entries));
     this.renderLog();
   }
 
   editEntry(id) {
     const entry = this.entries.find(e => e.id === id);
     if (!entry) return;
-
     this.editingId = id;
     this.elements.modalTitle.innerText = "Modifica Dato";
     this.elements.modalSub.innerText = "Aggiorna le informazioni dell'inserimento";
     this.elements.submitBtn.innerText = "Aggiorna Dato";
-
-    // Fill form
     const form = this.elements.entryForm;
     form.type.value = entry.type;
     this.toggleEntryType(entry.type);
-    
     this.elements.entryValue.value = entry.value;
     this.elements.unitInput.value = entry.unit || (entry.type === 'glucose' ? 'mg/dL' : 'ml');
     this.elements.medName.value = entry.medName || '';
     document.getElementById('entryNote').value = entry.note || '';
-    
     const d = new Date(entry.timestamp);
     document.getElementById('entryDate').value = d.toISOString().split('T')[0];
     form.entryTime.value = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
-    
     this.elements.entryModal.style.display = 'flex';
   }
 
@@ -523,7 +501,6 @@ class TerapiaApp {
     const glucoseEntries = dataSource.filter(e => e.type === 'glucose');
     const medEntries = dataSource.filter(e => e.type === 'med');
 
-    // Glucose Avg
     if (glucoseEntries.length > 0) {
       const avg = Math.round(glucoseEntries.reduce((acc, curr) => acc + parseFloat(curr.value || 0), 0) / glucoseEntries.length);
       this.elements.avgGlucose.innerText = avg;
@@ -533,10 +510,8 @@ class TerapiaApp {
       this.elements.avgGlucose.style.color = 'var(--text-secondary)';
     }
 
-    // Meds Count
     this.elements.medsCount.innerText = medEntries.length;
 
-    // Status Indicator logic
     const dailyEntries = this.getEntriesForDate(this.currentDate);
     if (dailyEntries.length === 0) {
       this.elements.statusIndicator.innerText = 'Dati Assenti';
@@ -553,41 +528,26 @@ class TerapiaApp {
       }
     }
 
-    // Update scope buttons state
     this.elements.chartScopeBtns.forEach(btn => {
       const isActive = btn.dataset.scope === this.chartScope;
       btn.classList.toggle('primary', isActive);
       btn.classList.toggle('secondary', !isActive);
     });
 
-    const chartData = this.chartScope === 'all' ? 
-      this.entries.filter(e => e.type === 'glucose') : 
+    const chartData = this.chartScope === 'all' ?
+      this.entries.filter(e => e.type === 'glucose') :
       dailyEntries.filter(e => e.type === 'glucose');
-
     this.renderChart(chartData);
   }
 
   renderChart(glucoseEntries) {
     if (!this.elements.glucoseChartCanvas) return;
     const ctx = this.elements.glucoseChartCanvas.getContext('2d');
-    
-    // Sort oldest first for chart
     const data = [...glucoseEntries].sort((a, b) => a.timestamp - b.timestamp);
-    
-    if (this.elements.glucoseChart) {
-      this.elements.glucoseChart.destroy();
-    }
+    if (this.elements.glucoseChart) { this.elements.glucoseChart.destroy(); }
+    if (data.length === 0 && this.chartScope !== 'day') return;
 
-    if (data.length === 0 && this.chartScope !== 'day') {
-      return;
-    }
-
-    const chartPoints = data.map(e => ({
-      x: e.timestamp,
-      y: parseFloat(e.value)
-    }));
-
-    // Calculate bounds for X axis
+    const chartPoints = data.map(e => ({ x: e.timestamp, y: parseFloat(e.value) }));
     let xMin, xMax;
     if (this.chartScope === 'day') {
       const d = new Date(this.currentDate);
@@ -601,7 +561,7 @@ class TerapiaApp {
     } else {
       xMin = Date.now() - 3600000;
       xMax = Date.now() + 3600000;
-    }    // Create gradient
+    }
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
     gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
@@ -610,45 +570,22 @@ class TerapiaApp {
       type: 'line',
       data: {
         datasets: [{
-          label: 'Glicemia (mg/dL)',
-          data: chartPoints,
-          borderColor: '#10b981',
-          backgroundColor: gradient,
-          borderWidth: 3,
-          tension: 0,
-          fill: true,
-          pointBackgroundColor: '#fff',
-          pointBorderColor: '#10b981',
-          pointBorderWidth: 2,
-          pointRadius: this.chartScope === 'all' ? 2 : 6,
-          pointHoverRadius: this.chartScope === 'all' ? 4 : 8,
-          pointHoverBackgroundColor: '#10b981',
-          pointHoverBorderColor: '#fff',
-          pointHoverBorderWidth: 2
+          label: 'Glicemia (mg/dL)', data: chartPoints,
+          borderColor: '#10b981', backgroundColor: gradient, borderWidth: 3, tension: 0, fill: true,
+          pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 2,
+          pointRadius: this.chartScope === 'all' ? 2 : 6, pointHoverRadius: this.chartScope === 'all' ? 4 : 8,
+          pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-          duration: 1200,
-          easing: 'easeInOutQuart'
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 1200, easing: 'easeInOutQuart' },
+        interaction: { intersect: false, mode: 'index' },
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleColor: '#fff',
-            bodyColor: '#fff',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
-            borderWidth: 1,
-            padding: 12,
-            boxPadding: 8,
-            usePointStyle: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', bodyColor: '#fff',
+            borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, padding: 12, boxPadding: 8, usePointStyle: true,
             callbacks: {
               label: (context) => `Glicemia: ${context.parsed.y} mg/dL`,
               title: (context) => {
@@ -659,32 +596,18 @@ class TerapiaApp {
           }
         },
         scales: {
-          y: {
-            min: 60,
-            grid: { color: 'rgba(255,255,255,0.05)' },
-            ticks: { 
-              color: '#94a3b8',
-              font: { weight: '600' }
-            }
-          },
+          y: { min: 60, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { weight: '600' } } },
           x: {
-            type: 'linear',
-            min: xMin,
-            max: xMax,
-            bounds: 'ticks',
+            type: 'linear', min: xMin, max: xMax, bounds: 'ticks',
             grid: { color: 'rgba(255,255,255,0.06)' },
-            ticks: { 
-              color: '#94a3b8',
-              maxRotation: 45,
-              minRotation: 0,
+            ticks: {
+              color: '#94a3b8', maxRotation: 45, minRotation: 0,
               stepSize: this.chartScope === 'day' ? 3600000 * 2 : 3600000 * 24,
               callback: (value) => {
                 const d = new Date(value);
-                if (this.chartScope === 'day') {
-                  return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-                } else {
-                  return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
-                }
+                return this.chartScope === 'day'
+                  ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+                  : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
               }
             }
           }
@@ -693,63 +616,57 @@ class TerapiaApp {
     });
   }
 
-  saveEntry() {
+  // ===== CRUD =====
+  async saveEntry() {
     const form = this.elements.entryForm;
     const type = form.type.value;
-    const dateValue = document.getElementById('entryDate').value; // "YYYY-MM-DD"
-    const timeValue = form.entryTime.value; // "HH:MM"
-    
-    // Create timestamp from selected date and time
+    const dateValue = document.getElementById('entryDate').value;
+    const timeValue = form.entryTime.value;
     const [year, month, day] = dateValue.split('-').map(v => parseInt(v));
     const [hours, minutes] = timeValue.split(':').map(v => parseInt(v));
-    
-    const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0);
+    const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
 
     const entryData = {
-      type: type,
+      type,
       value: this.elements.entryValue.value,
       unit: this.elements.unitInput.value,
       medName: type === 'med' ? this.elements.medName.value : '',
       note: document.getElementById('entryNote').value,
-      timestamp: timestamp.getTime()
+      timestamp
     };
 
-    if (this.editingId) {
-      const index = this.entries.findIndex(e => e.id === this.editingId);
-      if (index !== -1) {
-        this.entries[index] = { ...this.entries[index], ...entryData };
+    try {
+      if (this.editingId) {
+        await this.userCol().doc(this.editingId).update(entryData);
+        this.editingId = null;
+      } else {
+        const id = Date.now().toString();
+        await this.userCol().doc(id).set({ id, ...entryData });
       }
-      this.editingId = null;
-    } else {
-      this.entries.push({
-        id: Date.now().toString(),
-        ...entryData
-      });
+      form.reset();
+      this.elements.entryModal.style.display = 'none';
+      this.updateMedsDataList();
+      this.updateUnitsDataList(type);
+    } catch (e) {
+      console.error(e);
+      this.showToast('Errore durante il salvataggio', 'error');
     }
-
-    localStorage.setItem('terapia_data', JSON.stringify(this.entries));
-    
-    form.reset();
-    this.elements.entryModal.style.display = 'none';
-    this.updateMedsDataList();
-    this.updateUnitsDataList(type);
-    this.updateUI();
   }
 
-  deleteEntry(id) {
+  async deleteEntry(id) {
     if (confirm('Sei sicuro di voler eliminare questo dato?')) {
-      this.entries = this.entries.filter(e => e.id !== id);
-      localStorage.setItem('terapia_data', JSON.stringify(this.entries));
-      this.updateUI();
+      try {
+        await this.userCol().doc(id).delete();
+      } catch (e) {
+        console.error(e);
+        this.showToast('Errore durante l\'eliminazione', 'error');
+      }
     }
   }
 
+  // ===== IMPORT / EXPORT =====
   exportToCSV() {
-    if (this.entries.length === 0) {
-      alert('Nessun dato da esportare.');
-      return;
-    }
-
+    if (this.entries.length === 0) { alert('Nessun dato da esportare.'); return; }
     const headers = ['Data', 'Orario', 'Tipo', 'Valore/Dose', 'Note'];
     const rows = this.entries.map(e => {
       const d = new Date(e.timestamp);
@@ -761,13 +678,10 @@ class TerapiaApp {
         `"${e.note || ''}"`
       ];
     });
-
     const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
+    link.setAttribute('href', URL.createObjectURL(blob));
     link.setAttribute('download', `terapia_export_${new Date().toISOString().slice(0, 10)}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
@@ -776,154 +690,84 @@ class TerapiaApp {
     this.showToast('Esportazione completata');
   }
 
-  handleImport(event) {
+  async handleImport(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { 
-          type: 'array',
-          cellDates: true,
-          cellNF: false,
-          cellText: false
-        });
-        
-        const firstSheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[firstSheetName];
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: false });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-        if (jsonData.length === 0) {
-          this.showToast('Il file è vuoto', 'error');
-          return;
-        }
-
+        if (jsonData.length === 0) { this.showToast('Il file è vuoto', 'error'); return; }
         const importedEntries = this.mapJsonToEntries(jsonData);
         if (importedEntries.length > 0) {
-          this.entries = [...this.entries, ...importedEntries];
-          localStorage.setItem('terapia_data', JSON.stringify(this.entries));
-          this.updateUI();
+          const batch = db.batch();
+          importedEntries.forEach(entry => {
+            const ref = this.userCol().doc(entry.id);
+            batch.set(ref, entry);
+          });
+          await batch.commit();
           this.showToast(`${importedEntries.length} dati importati con successo!`);
         } else {
-          this.showToast('Nessun dato compatibile trovato. Controlla le intestazioni delle colonne.', 'error');
+          this.showToast('Nessun dato compatibile trovato.', 'error');
         }
       } catch (err) {
         console.error(err);
         this.showToast('Errore durante l\'importazione', 'error');
       }
-      this.elements.importInput.value = ''; // Reset input
+      this.elements.importInput.value = '';
     };
     reader.readAsArrayBuffer(file);
   }
 
   mapJsonToEntries(data) {
     const results = [];
-    
     data.forEach(row => {
-      let glucoseValue = null;
-      let medName = null;
-      let medDose = 1;
-      let note = '';
-      let dateObj = new Date();
-      let hasDate = false;
-      let hasTime = false;
-
-      // Extract data from row keys
+      let glucoseValue = null, medName = null, medDose = 1, note = '';
+      let dateObj = new Date(), hasDate = false, hasTime = false;
       Object.entries(row).forEach(([key, val]) => {
         if (!val && val !== 0) return;
-        
         const k = key.toLowerCase().trim();
-        
-        // Value / Glucose
         if (k.includes('glic') || k.includes('glucos') || (k.includes('valore') && !k.includes('dose'))) {
           glucoseValue = parseFloat(val);
-        } 
-        // Medication
-        else if (k.includes('farm') || k.includes('pastig') || k.includes('med') || k.includes('nome')) {
+        } else if (k.includes('farm') || k.includes('pastig') || k.includes('med') || k.includes('nome')) {
           medName = val.toString();
-        }
-        // Dose
-        else if (k.includes('dose') || k.includes('quant')) {
+        } else if (k.includes('dose') || k.includes('quant')) {
           medDose = val;
-        }
-        // Notes
-        else if (k.includes('note') || k.includes('comm')) {
+        } else if (k.includes('note') || k.includes('comm')) {
           note = val.toString();
-        }
-        // Date handling
-        else if (k.includes('data') || k.includes('giorno') || k.includes('date')) {
+        } else if (k.includes('data') || k.includes('giorno') || k.includes('date')) {
           const d = this.parseExcelDate(val);
-          if (d) {
-            dateObj.setFullYear(d.getFullYear(), d.getMonth(), d.getDate());
-            hasDate = true;
-          }
-        }
-        // Time handling
-        else if (k.includes('ora') || k.includes('time')) {
+          if (d) { dateObj.setFullYear(d.getFullYear(), d.getMonth(), d.getDate()); hasDate = true; }
+        } else if (k.includes('ora') || k.includes('time')) {
           const t = this.parseExcelTime(val);
-          if (t) {
-            dateObj.setHours(t.getHours(), t.getMinutes(), 0, 0);
-            hasTime = true;
-          }
+          if (t) { dateObj.setHours(t.getHours(), t.getMinutes(), 0, 0); hasTime = true; }
         }
       });
-
-      // If we found a date/time in the same cell (common in Excel)
       if (!hasDate || !hasTime) {
         Object.values(row).forEach(val => {
           if (val instanceof Date) {
-            if (!hasDate) {
-              dateObj.setFullYear(val.getFullYear(), val.getMonth(), val.getDate());
-              hasDate = true;
-            }
-            if (!hasTime && (val.getHours() !== 0 || val.getMinutes() !== 0)) {
-              dateObj.setHours(val.getHours(), val.getMinutes(), 0, 0);
-              hasTime = true;
-            }
+            if (!hasDate) { dateObj.setFullYear(val.getFullYear(), val.getMonth(), val.getDate()); hasDate = true; }
+            if (!hasTime && (val.getHours() !== 0 || val.getMinutes() !== 0)) { dateObj.setHours(val.getHours(), val.getMinutes(), 0, 0); hasTime = true; }
           }
         });
       }
-
       const timestamp = dateObj.getTime();
-
-      // Create Glucose Entry
       if (glucoseValue !== null && !isNaN(glucoseValue)) {
-        results.push({
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-          type: 'glucose',
-          value: glucoseValue,
-          unit: 'mg/dL',
-          medName: '',
-          note: note,
-          timestamp: timestamp
-        });
+        results.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 9), type: 'glucose', value: glucoseValue, unit: 'mg/dL', medName: '', note, timestamp });
       }
-
-      // Create Medication Entry
       if (medName) {
-        results.push({
-          id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + '_m',
-          type: 'med',
-          value: medDose,
-          unit: 'ml', // Default for import
-          medName: medName,
-          note: glucoseValue !== null ? '' : note, // Only attach note to one if split
-          timestamp: timestamp
-        });
+        results.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + '_m', type: 'med', value: medDose, unit: 'ml', medName, note: glucoseValue !== null ? '' : note, timestamp });
       }
     });
-
     return results;
   }
 
   parseExcelDate(val) {
     if (val instanceof Date) return val;
-    if (typeof val === 'number') {
-      // Excel serial date to JS Date
-      return new Date(Math.round((val - 25569) * 86400 * 1000));
-    }
+    if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
     const d = new Date(val);
     return isNaN(d.getTime()) ? null : d;
   }
@@ -931,15 +775,10 @@ class TerapiaApp {
   parseExcelTime(val) {
     if (val instanceof Date) return val;
     if (typeof val === 'string') {
-      const match = val.match(/(\d{1,2})[:.](\d{2})/);
-      if (match) {
-        const d = new Date();
-        d.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0);
-        return d;
-      }
+      const match = val.match(/(\d{1,2})[:.](\\d{2})/);
+      if (match) { const d = new Date(); d.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0); return d; }
     }
     if (typeof val === 'number' && val < 1) {
-      // Excel serial time (fraction of day)
       const totalSeconds = Math.round(val * 24 * 60 * 60);
       const d = new Date();
       d.setHours(Math.floor(totalSeconds / 3600), Math.floor((totalSeconds % 3600) / 60), 0, 0);
@@ -958,81 +797,11 @@ class TerapiaApp {
     `;
     document.body.appendChild(toast);
     lucide.createIcons();
-    
     setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-      toast.classList.remove('show');
-      setTimeout(() => toast.remove(), 300);
-    }, 3000);
-  }
-
-  loadDemoData() {
-    if (this.entries.length > 0) return;
-
-    const today = new Date();
-    const demoEntries = [
-      { id: '1', type: 'glucose', value: 105, unit: 'mg/dL', timestamp: new Date(today.setHours(8, 30)).getTime(), note: 'A digiuno' },
-      { id: '2', type: 'med', value: 1, unit: 'unità', medName: 'Metformina 500mg', timestamp: new Date(today.setHours(8, 45)).getTime(), note: 'Dopo colazione' },
-      { id: '3', type: 'glucose', value: 145, unit: 'mg/dL', timestamp: new Date(today.setHours(13, 15)).getTime(), note: 'Dopo pranzo' },
-      { id: '4', type: 'med', value: 3, unit: 'ml', medName: 'Insulina', timestamp: new Date(today.setHours(13, 30)).getTime(), note: '' },
-      { id: '5', type: 'glucose', value: 115, unit: 'mg/dL', timestamp: new Date(today.setHours(19, 45)).getTime(), note: 'Prima di cena' }
-    ];
-
-    this.entries = demoEntries;
-    localStorage.setItem('terapia_data', JSON.stringify(this.entries));
-    this.updateUI();
-  }
-  async loadFromRepository(showToast = false) {
-    try {
-      const response = await fetch('data.json?t=' + Date.now());
-      if (response.ok) {
-        const fileContent = await response.json();
-        const initialCount = this.entries.length;
-        
-        // Merge entries, checking for duplicates by timestamp + value
-        fileContent.forEach(fileEntry => {
-          const exists = this.entries.some(e => 
-            e.timestamp === fileEntry.timestamp && 
-            e.type === fileEntry.type && 
-            e.value == fileEntry.value
-          );
-          if (!exists) {
-            this.entries.push(fileEntry);
-          }
-        });
-
-        localStorage.setItem('terapia_data', JSON.stringify(this.entries));
-        if (showToast) {
-          this.showToast(`Sincronizzato: ${this.entries.length - initialCount} nuovi record.`);
-          this.updateUI();
-        }
-      } else {
-        if (showToast) this.showToast("Impossibile trovare data.json nel repository.", "error");
-        if (this.entries.length === 0) this.loadDemoData();
-      }
-    } catch (e) {
-      console.warn("SincronizzazioneRepository:", e);
-      if (showToast) this.showToast("File data.json non accessibile.", "error");
-      if (this.entries.length === 0) this.loadDemoData();
-    }
-  }
-
-  exportToRepository() {
-    try {
-      const jsonContent = JSON.stringify(this.entries, null, 2);
-      const blob = new Blob([jsonContent], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'data.json';
-      link.click();
-      this.showToast("Database pronto. Salvalo nel repository sopra data.json");
-    } catch (e) {
-      this.showToast("Errore durante l'esportazione", "error");
-    }
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
   }
 }
 
-// Start the app when the DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new TerapiaApp();
 });
