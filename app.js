@@ -431,6 +431,7 @@ class TerapiaApp {
       const dateTag = entryDate.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
       if (this.viewAll && dateTag !== lastDateTag) {
         const headerTr = document.createElement('tr');
+        headerTr.className = 'log-date-divider';
         headerTr.innerHTML = `<td colspan="6" style="background: rgba(255,255,255,0.02); padding: 0.6rem 1.5rem; text-transform: uppercase; font-size: 0.725rem; letter-spacing: 0.05em; color: var(--accent-primary); font-weight: 800;">${dateTag}</td>`;
         this.elements.logTbody.appendChild(headerTr);
         lastDateTag = dateTag;
@@ -442,17 +443,17 @@ class TerapiaApp {
       tr.dataset.id = entry.id;
       const isGlucose = entry.type === 'glucose';
       tr.innerHTML = `
-        <td style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</td>
-        <td style="font-weight: 600; text-align: center;">${time}</td>
-        <td><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
-        <td>
+        <td data-label="Data" style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</td>
+        <td data-label="Orario" style="font-weight: 600; text-align: center;">${time}</td>
+        <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
+        <td data-label="Dato / Dose">
           <span style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span> 
           <span style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : 'ml')}</span>
           ${!isGlucose ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border);">${entry.medName}</span>` : ''}
         </td>
-        <td style="color: var(--text-secondary); font-size: 0.9rem;">${entry.note || '-'}</td>
-        <td style="text-align: right;">
-          <div style="display: flex; gap: 0.25rem; justify-content: flex-end; align-items: center;">
+        <td data-label="Note" style="color: var(--text-secondary); font-size: 0.9rem;">${entry.note || '-'}</td>
+        <td data-label="Azioni" style="text-align: right;">
+          <div class="row-actions">
             <i data-lucide="grip-vertical" style="width: 14px; height: 14px; color: var(--text-muted); cursor: grab;"></i>
             <button class="secondary icon-btn edit-btn" data-id="${entry.id}" style="padding: 0.25rem;" title="Modifica">
               <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i>

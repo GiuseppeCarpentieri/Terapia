@@ -49,6 +49,7 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
+  overflow-x: clip;
 }
 
 .actions {
@@ -241,6 +242,68 @@ header {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.chart-header,
+.log-controls,
+.chart-filter-btns,
+.log-filter-btns,
+.value-input-row,
+.row-actions {
+  display: flex;
+}
+
+.chart-header {
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.log-controls,
+.chart-filter-btns,
+.log-filter-btns,
+.row-actions {
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.value-input-row {
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.value-input-row > *:first-child {
+  flex: 1;
+}
+
+.value-input-row > *:not(:first-child) {
+  flex: 2;
+}
+
+.entry-type-grid,
+.date-time-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.modal-actions > * {
+  flex: 1;
+  justify-content: center;
+}
+
+.row-actions {
+  justify-content: flex-end;
+  gap: 0.25rem;
 }
 
 .log-table-container {
@@ -387,13 +450,265 @@ input[type="number"] {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+  /* Dashboard: 3 cards in una riga compatta */
+  .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    padding: 0.6rem 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+  }
+
+  /* Header: due righe - brand+actions sopra, date picker sotto */
+  header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: stretch;
+    padding: 0.75rem;
+  }
+
+  /* Prima riga: brand e azioni affiancate */
+  header .brand {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  header .brand h1 {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+
+  header .brand p {
+    font-size: 0.75rem;
+  }
+
+  /* Azioni: compatte, niente testo "Sincronizza" */
+  header .actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  /* La prima riga dell'header: brand a sinistra, actions a destra */
+  header > .brand,
+  header > .actions {
+    flex: 0 0 auto;
+  }
+
+  /* Wrap brand e actions in riga */
+  header {
+    display: grid;
+    grid-template-areas:
+      "brand actions"
+      "dates dates";
+    grid-template-columns: 1fr auto;
+    align-items: center;
+  }
+
+  header .brand { grid-area: brand; }
+  header .actions { grid-area: actions; }
+  header .date-picker-container { grid-area: dates; }
+
+  /* Date picker: occupa tutta la larghezza */
+  .date-picker-container {
+    max-width: none;
+    width: 100%;
+    gap: 0.5rem;
+    padding: 0.4rem 0.25rem;
+    border-radius: 16px;
+  }
+
+  .date-item {
+    min-width: 52px;
+    height: 52px;
+  }
+
+  /* Log header: filtri su due righe */
+  .log-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .log-controls {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .filter-btns {
+    flex-wrap: wrap;
+  }
+
+  /* Tabella: font più piccolo */
+  th, td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  /* Modal: padding ridotto */
+  .modal {
+    padding: 1.25rem;
+    width: 95%;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .entry-type-grid,
+  .date-time-grid {
+    gap: 0.75rem;
+  }
+
+  /* Toast: occupa quasi tutta la larghezza */
+  .toast {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+  /* Chart section */
+  .chart-section {
+    padding: 1rem !important;
+  }
+
+  /* Bottoni azione header: mostra solo icona su schermi molto piccoli */
+  #syncRepoBtn span,
+  #syncRepoBtn:not(:has(i)) {
+    font-size: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  header {
+    grid-template-areas:
+      "brand"
+      "actions"
+      "dates";
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  header .brand {
+    justify-content: space-between;
+  }
+
+  header .actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  header .actions button {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+  }
+
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
 
-  header {
+  .chart-filter-btns,
+  .log-controls,
+  .log-filter-btns,
+  .value-input-row,
+  .modal-actions {
     flex-direction: column;
-    gap: 1.5rem;
+  }
+
+  .entry-type-grid,
+  .date-time-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-filter-btns button,
+  .log-filter-btns button,
+  .log-controls > button,
+  .log-controls select {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .log-table-container {
+    overflow: visible;
+    border: none;
+    background: transparent;
+  }
+
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+    width: 100%;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  tr {
+    border: 1px solid var(--glass-border);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    overflow: hidden;
+  }
+
+  tr:hover td {
+    background: transparent;
+  }
+
+  tr td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.7rem 0.85rem;
+    text-align: left !important;
+  }
+
+  .log-date-divider {
+    border: none;
+    background: transparent;
+  }
+
+  .log-date-divider td {
+    padding: 0.2rem 0.1rem 0;
+  }
+
+  .log-date-divider td::before {
+    content: none;
+  }
+
+  tr td::before {
+    content: attr(data-label);
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    flex: 0 0 84px;
+  }
+
+  tr td[data-label="Dato / Dose"] {
+    flex-direction: column;
     align-items: flex-start;
   }
 
@@ -406,4 +721,50 @@ input[type="number"] {
     flex: 1 1 calc(50% - 0.75rem);
     justify-content: center;
   }
+
+  tr td[data-label="Dato / Dose"]::before {
+    flex-basis: auto;
+  }
+
+  .row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
 }
+
+@media (max-width: 480px) {
+  /* Dashboard: ancora più compatta */
+  .dashboard-grid {
+    gap: 0.4rem;
+  }
+
+  .stat-value {
+    font-size: 0.95rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
+  }
+
+  /* Nascondi testo "Sincronizza" tenendo solo l'icona */
+  #syncRepoBtn {
+    font-size: 0;
+    gap: 0;
+    padding: 0.5rem 0.75rem;
+  }
+
+  #syncRepoBtn i {
+    font-size: 1rem;
+  }
+
+  /* Date item più piccoli */
+  .date-item {
+    min-width: 44px;
+    height: 46px;
+  }
+
+  .date-number {
+    font-size: 0.95rem;
+  }
+}
+
