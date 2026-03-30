@@ -3,6 +3,8 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
+const APP_VERSION = 'v2026.03.30.2';
+
 // ===== FIREBASE =====
 const firebaseConfig = {
   apiKey: "AIzaSyCLxYvfbNl6bMlot7xx1vOH-BjYGWgg3fM",
@@ -59,6 +61,7 @@ class TerapiaApp {
       chartScopeBtns: document.querySelectorAll('#chartScopeBtns button'),
       chartSub: document.getElementById('chartSub'),
       syncRepoBtn: document.getElementById('syncRepoBtn'),
+      appVersion: document.getElementById('appVersion'),
       glucoseChart: null
     };
 
@@ -66,8 +69,15 @@ class TerapiaApp {
     this.chartScope = 'all';
     this.currentMedFilter = '';
     this.editingId = null;
+    this.renderAppVersion();
     this.setupPwaInstall();
     this.initFirebase();
+  }
+
+  renderAppVersion() {
+    if (this.elements.appVersion) {
+      this.elements.appVersion.textContent = APP_VERSION;
+    }
   }
 
   setupPwaInstall() {

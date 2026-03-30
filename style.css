@@ -476,6 +476,28 @@ input[type="number"] {
 .toast.success i { color: var(--accent-secondary); }
 .toast.error i { color: var(--accent-pill); }
 
+.app-footer {
+  margin: 0 auto 1.5rem;
+  width: min(1100px, calc(100% - 2rem));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+}
+
+.app-footer-label {
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+#appVersion {
+  color: var(--text-primary);
+  font-size: 0.84rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   /* Dashboard: 3 cards in una riga compatta */
@@ -606,6 +628,12 @@ input[type="number"] {
     left: 1rem;
     right: 1rem;
     bottom: 1rem;
+  }
+
+  .app-footer {
+    width: calc(100% - 1.5rem);
+    margin-bottom: 1.25rem;
+    font-size: 0.76rem;
   }
 
   /* Chart section */
