@@ -428,13 +428,22 @@ class TerapiaApp {
     let lastDateTag = "";
     filteredEntries.forEach(entry => {
       const entryDate = new Date(entry.timestamp);
-      const dateTag = entryDate.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
-      if (this.viewAll && dateTag !== lastDateTag) {
+      const groupKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
+      const groupDayLabel = entryDate.toLocaleDateString('it-IT', { weekday: 'long' });
+      const groupDateLabel = entryDate.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+      if (this.viewAll && groupKey !== lastDateTag) {
         const headerTr = document.createElement('tr');
         headerTr.className = 'log-date-divider';
-        headerTr.innerHTML = `<td colspan="6" style="background: rgba(255,255,255,0.02); padding: 0.6rem 1.5rem; text-transform: uppercase; font-size: 0.725rem; letter-spacing: 0.05em; color: var(--accent-primary); font-weight: 800;">${dateTag}</td>`;
+        headerTr.innerHTML = `
+          <td colspan="6" class="log-date-divider-cell">
+            <div class="log-date-divider-content">
+              <span class="log-date-divider-day">${groupDayLabel}</span>
+              <span class="log-date-divider-date">${groupDateLabel}</span>
+            </div>
+          </td>
+        `;
         this.elements.logTbody.appendChild(headerTr);
-        lastDateTag = dateTag;
+        lastDateTag = groupKey;
       }
       const time = entryDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
       const tr = document.createElement('tr');
@@ -443,13 +452,15 @@ class TerapiaApp {
       tr.dataset.id = entry.id;
       const isGlucose = entry.type === 'glucose';
       tr.innerHTML = `
-        <td data-label="Data" style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</td>
-        <td data-label="Orario" style="font-weight: 600; text-align: center;">${time}</td>
+        <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</span></td>
+        <td data-label="Orario"><span class="time-inline-value">${time}</span></td>
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
-        <td data-label="Dato / Dose">
-          <span style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span> 
-          <span style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : 'ml')}</span>
-          ${!isGlucose ? `<span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 0.5rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border);">${entry.medName}</span>` : ''}
+        <td data-label="Dose">
+          <div class="dose-inline">
+            <span class="dose-value" style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span>
+            <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : 'ml')}</span>
+            ${!isGlucose ? `<span class="dose-med-name" style="color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border);">${entry.medName}</span>` : ''}
+          </div>
         </td>
         <td data-label="Note" style="color: var(--text-secondary); font-size: 0.9rem;">${entry.note || '-'}</td>
         <td data-label="Azioni" style="text-align: right;">
@@ -861,8 +872,18 @@ document.addEventListener('DOMContentLoaded', () => {
   window.app = new TerapiaApp();
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js').catch((error) => {
-      console.error('Service worker registration failed:', error);
+    let refreshing = false;
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
     });
+
+    navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch((error) => {
+        console.error('Service worker registration failed:', error);
+      });
   }
 });

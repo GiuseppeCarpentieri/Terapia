@@ -1,4 +1,4 @@
-const CACHE_NAME = 'terapia-pwa-v1';
+const CACHE_NAME = 'terapia-pwa-v2';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,32 @@ const APP_ASSETS = [
   './screenshots/mobile.png',
   './screenshots/desktop.png'
 ];
+const APP_SHELL_PATHS = new Set(APP_ASSETS.map((asset) => new URL(asset, self.location.href).pathname));
+
+async function networkFirst(request) {
+  const cache = await caches.open(CACHE_NAME);
+
+  try {
+    const networkResponse = await fetch(request);
+
+    if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+      cache.put(request, networkResponse.clone());
+    }
+
+    return networkResponse;
+  } catch (error) {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    if (request.mode === 'navigate') {
+      return caches.match('./offline.html');
+    }
+
+    return Response.error();
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -40,29 +66,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
+  const requestUrl = new URL(event.request.url);
+  const isSameOrigin = requestUrl.origin === self.location.origin;
+  const isAppShellRequest = event.request.mode === 'navigate' || APP_SHELL_PATHS.has(requestUrl.pathname);
 
-      return fetch(event.request)
-        .then((networkResponse) => {
-          if (!networkResponse || networkResponse.status !== 200) {
-            return networkResponse;
-          }
+  if (isSameOrigin || isAppShellRequest) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
 
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-          return networkResponse;
-        })
-        .catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('./offline.html');
-          }
-
-          return Response.error();
-        });
-    })
-  );
+  event.respondWith(networkFirst(event.request));
 });
