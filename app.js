@@ -200,7 +200,7 @@ class TerapiaApp {
       this.elements.entryForm.entryTime.value = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
     };
 
-    this.elements.exportAllBtn.onclick = () => this.exportToCSV();
+    this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
     if (this.elements.installAppBtn) {
       this.elements.installAppBtn.onclick = () => this.installPwa();
     }
@@ -287,7 +287,7 @@ class TerapiaApp {
     };
     this.elements.syncRepoBtn.oncontextmenu = (e) => {
       e.preventDefault();
-      this.exportToCSV();
+      this.downloadHistoryXLSX();
     };
   }
 
@@ -741,29 +741,69 @@ class TerapiaApp {
   }
 
   // ===== IMPORT / EXPORT =====
-  exportToCSV() {
+  exportToXLSXLegacy() {
     if (this.entries.length === 0) { alert('Nessun dato da esportare.'); return; }
-    const headers = ['Data', 'Orario', 'Tipo', 'Valore/Dose', 'Note'];
     const rows = this.entries.map(e => {
       const d = new Date(e.timestamp);
-      return [
-        d.toLocaleDateString('it-IT'),
-        d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-        e.type === 'glucose' ? 'Glicemia' : 'Farmaco',
-        e.type === 'glucose' ? `${e.value} mg/dL` : `${e.value} (${e.medName})`,
-        `"${e.note || ''}"`
-      ];
+      return {
+        Data: d.toLocaleDateString('it-IT'),
+        Orario: d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+        Tipo: e.type === 'glucose' ? 'Glicemia' : 'Farmaco',
+        'Valore/Dose': e.value ?? '',
+        'Unità': e.unit || (e.type === 'glucose' ? 'mg/dL' : ''),
+        Farmaco: e.type === 'glucose' ? '' : (e.medName || ''),
+        Note: e.note || ''
+      };
     });
-    const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.setAttribute('href', URL.createObjectURL(blob));
-    link.setAttribute('download', `terapia_export_${new Date().toISOString().slice(0, 10)}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    this.showToast('Esportazione completata');
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 9 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 36 }
+    ];
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Storico');
+    XLSX.writeFile(workbook, `terapia_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    this.showToast('Esportazione XLSX completata');
+  }
+
+  downloadHistoryXLSX() {
+    if (this.entries.length === 0) { alert('Nessun dato da esportare.'); return; }
+
+    const rows = [...this.entries]
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map((entry) => {
+        const date = new Date(entry.timestamp);
+        return {
+          Data: date.toLocaleDateString('it-IT'),
+          Orario: date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+          Tipo: entry.type === 'glucose' ? 'Glicemia' : 'Farmaco',
+          'Valore/Dose': entry.value ?? '',
+          Unita: entry.unit || (entry.type === 'glucose' ? 'mg/dL' : ''),
+          Farmaco: entry.type === 'glucose' ? '' : (entry.medName || ''),
+          Note: entry.note || ''
+        };
+      });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    worksheet['!cols'] = [
+      { wch: 12 },
+      { wch: 9 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 24 },
+      { wch: 36 }
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Storico');
+    XLSX.writeFile(workbook, `terapia_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    this.showToast('Esportazione XLSX completata');
   }
 
   async handleImport(event) {
