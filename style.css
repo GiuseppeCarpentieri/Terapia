@@ -59,6 +59,45 @@ body {
   justify-content: flex-end;
 }
 
+.header-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.brand-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.brand-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  min-width: 0;
+  margin-left: auto;
+  flex: 0 1 auto;
+}
+
+.brand-tagline {
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 /* Glassmorphism Utility */
 .glass-panel {
   background: var(--bg-card);
@@ -117,9 +156,13 @@ button.secondary:hover {
 
 /* Header & Navigation */
 header {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-areas:
+    "brand brand"
+    "dates actions";
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  gap: 0.85rem 1rem;
   margin-bottom: 1.5rem;
   position: sticky;
   top: 0;
@@ -131,6 +174,21 @@ header {
     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
   background-attachment: fixed;
+}
+
+header .brand {
+  grid-area: brand;
+  width: 100%;
+}
+
+header .date-picker-container {
+  grid-area: dates;
+  max-width: none;
+  width: 100%;
+}
+
+header .header-controls {
+  grid-area: actions;
 }
 
 /* Date Picker Horizontal List */
@@ -496,30 +554,43 @@ input[type="number"] {
 .toast.success i { color: var(--accent-secondary); }
 .toast.error i { color: var(--accent-pill); }
 
-.app-footer {
-  position: fixed;
-  left: 50%;
-  bottom: 0.75rem;
-  transform: translateX(-50%);
-  width: min(1100px, calc(100% - 2rem));
+.app-version-menu {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.app-version-panel {
+  position: absolute;
+  top: calc(100% + 0.45rem);
+  right: 0;
+  left: auto;
   display: flex;
-  justify-content: center;
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.85rem;
   border-radius: 9999px;
   border: 1px solid var(--glass-border);
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(12px);
   box-shadow: var(--glass-shadow);
   color: var(--text-secondary);
   font-size: 0.8rem;
   letter-spacing: 0.03em;
-  z-index: 10001;
+  white-space: nowrap;
+  z-index: 101;
+  opacity: 0;
+  transform: translateY(0.3rem);
   pointer-events: none;
+  transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-.app-footer-label {
+.app-version-menu.is-open .app-version-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.app-version-label {
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -527,6 +598,30 @@ input[type="number"] {
 #appVersion {
   color: var(--text-primary);
   font-size: 0.84rem;
+}
+
+.app-version-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: var(--glass-shadow);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.app-version-toggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
 }
 
 /* Responsive adjustments */
@@ -563,10 +658,16 @@ input[type="number"] {
   /* Prima riga: brand e azioni affiancate */
   header .brand {
     display: flex;
-    flex-direction: row;
     align-items: center;
-    gap: 0.75rem;
     min-width: 0;
+  }
+
+  header .brand-main {
+    gap: 0.75rem;
+  }
+
+  header .brand-meta {
+    gap: 0.45rem;
   }
 
   header .brand h1 {
@@ -574,11 +675,17 @@ input[type="number"] {
     line-height: 1;
   }
 
-  header .brand p {
+  header .brand-tagline {
     font-size: 0.75rem;
   }
 
   /* Azioni: compatte, niente testo "Sincronizza" */
+  header .header-controls {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
   header .actions {
     display: flex;
     gap: 0.5rem;
@@ -588,7 +695,7 @@ input[type="number"] {
 
   /* La prima riga dell'header: brand a sinistra, actions a destra */
   header > .brand,
-  header > .actions {
+  header > .header-controls {
     flex: 0 0 auto;
   }
 
@@ -603,7 +710,7 @@ input[type="number"] {
   }
 
   header .brand { grid-area: brand; }
-  header .actions { grid-area: actions; }
+  header .header-controls { grid-area: actions; }
   header .date-picker-container { grid-area: dates; }
 
   /* Date picker: occupa tutta la larghezza */
@@ -664,11 +771,17 @@ input[type="number"] {
     bottom: 1rem;
   }
 
-  .app-footer {
-    width: calc(100% - 1.5rem);
-    bottom: 0.5rem;
+  .app-version-panel {
+    top: calc(100% + 0.45rem);
+    right: 0;
+    left: auto;
     font-size: 0.76rem;
-    padding: 0.4rem 0.75rem;
+    padding: 0.4rem 0.7rem;
+    transform: translateY(0.3rem);
+  }
+
+  .app-version-menu.is-open .app-version-panel {
+    transform: translateY(0);
   }
 
   /* Chart section */
@@ -694,11 +807,17 @@ input[type="number"] {
   }
 
   header .brand {
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+
+  header .header-controls {
+    width: 100%;
+    justify-content: stretch;
   }
 
   header .actions {
     width: 100%;
+    flex: 1 1 auto;
     justify-content: stretch;
   }
 

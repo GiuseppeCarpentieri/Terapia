@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.03.30.2';
+const APP_VERSION = 'v2026.04.01.5';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -61,7 +61,9 @@ class TerapiaApp {
       chartScopeBtns: document.querySelectorAll('#chartScopeBtns button'),
       chartSub: document.getElementById('chartSub'),
       syncRepoBtn: document.getElementById('syncRepoBtn'),
+      appVersionMenu: document.getElementById('appVersionMenu'),
       appVersion: document.getElementById('appVersion'),
+      appVersionToggle: document.getElementById('appVersionToggle'),
       glucoseChart: null
     };
 
@@ -70,6 +72,7 @@ class TerapiaApp {
     this.currentMedFilter = '';
     this.editingId = null;
     this.renderAppVersion();
+    this.setupVersionToggle();
     this.setupPwaInstall();
     this.initFirebase();
   }
@@ -78,6 +81,34 @@ class TerapiaApp {
     if (this.elements.appVersion) {
       this.elements.appVersion.textContent = APP_VERSION;
     }
+  }
+
+  setupVersionToggle() {
+    const { appVersionMenu, appVersionToggle } = this.elements;
+    if (!appVersionMenu || !appVersionToggle) return;
+
+    const closeVersionPanel = () => {
+      appVersionMenu.classList.remove('is-open');
+      appVersionToggle.setAttribute('aria-expanded', 'false');
+    };
+
+    appVersionToggle.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = appVersionMenu.classList.toggle('is-open');
+      appVersionToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!appVersionMenu.contains(event.target)) {
+        closeVersionPanel();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        closeVersionPanel();
+      }
+    });
   }
 
   setupPwaInstall() {
