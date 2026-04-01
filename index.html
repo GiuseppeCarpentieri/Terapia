@@ -10,8 +10,12 @@
   <meta name="apple-mobile-web-app-title" content="Terapia">
   <title>Terapia | Monitoraggio Glicemia e Farmaci</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="icon" type="image/svg+xml" href="icons/favicon-v2.svg">
+  <link rel="shortcut icon" href="icons/favicon-48-v2.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/favicon-192-v2.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48-v2.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32-v2.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16-v2.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -33,7 +37,7 @@
   <!-- Login Overlay -->
   <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(10,15,30,0.97); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
     <div style="background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:3rem 2.5rem; max-width:400px; width:90%; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
-      <div style="width:72px;height:72px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">💊</div>
+      <div style="width:72px;height:72px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">&#x1F48A;</div>
       <h2 style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">Terapia</h2>
       <p style="color:#94a3b8;margin-bottom:2rem;">Accedi con Google per sincronizzare i dati su PC e telefono</p>
       <button id="googleSignInBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.75rem;padding:0.9rem 1.5rem;border-radius:12px;border:none;background:white;color:#1e293b;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 4px 15px rgba(0,0,0,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.3)'">
@@ -82,15 +86,15 @@
       </div>
       
       <div class="stat-card glass-panel">
-        <span class="stat-label">Farmaci Assunti</span>
-        <div class="stat-value" id="medsCount">0 / 0</div>
-        <p class="text-secondary">Pillole assunte</p>
-      </div>
-      
-      <div class="stat-card glass-panel">
         <span class="stat-label">Stato</span>
         <div class="stat-value" id="statusIndicator">--</div>
         <p class="text-secondary">Check-up</p>
+      </div>
+
+      <div class="stat-card glass-panel">
+        <span class="stat-label">Farmaci Assunti</span>
+        <div class="stat-value" id="medsCount">0 / 0</div>
+        <p class="text-secondary">Pillole</p>
       </div>
     </section>
 
@@ -180,11 +184,11 @@
           <label id="value-label">Valore (Glicemia)</label>
           <div class="value-input-row">
             <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1; text-align: left;">
-            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unità" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
+            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unit&agrave;" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
             <datalist id="unitsList">
               <option value="mg/dL"></option>
               <option value="ml"></option>
-              <option value="unità"></option>
+              <option value="unit&agrave;"></option>
               <option value="UI"></option>
             </datalist>
           </div>

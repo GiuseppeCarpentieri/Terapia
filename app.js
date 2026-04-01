@@ -472,7 +472,7 @@ class TerapiaApp {
             ${!isGlucose ? `<span class="dose-med-name" style="color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border);">${entry.medName}</span>` : ''}
           </div>
         </td>
-        <td data-label="Note" style="color: var(--text-secondary); font-size: 0.9rem;">${entry.note || '-'}</td>
+        <td data-label="Note" style="color: var(--text-secondary); font-size: 0.9rem;"><span class="note-inline">${entry.note || '-'}</span></td>
         <td data-label="Azioni" style="text-align: right;">
           <div class="row-actions">
             <i data-lucide="grip-vertical" style="width: 14px; height: 14px; color: var(--text-muted); cursor: grab;"></i>

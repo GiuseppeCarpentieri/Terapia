@@ -1,4 +1,4 @@
-const CACHE_NAME = 'terapia-pwa-v2';
+const CACHE_NAME = 'terapia-pwa-v3';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -6,11 +6,14 @@ const APP_ASSETS = [
   './style.css',
   './app.js',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icons/favicon-v2.svg',
+  './icons/favicon-16-v2.png',
+  './icons/favicon-32-v2.png',
+  './icons/favicon-48-v2.png',
+  './icons/favicon-192-v2.png',
+  './icons/icon-192-v2.png',
+  './icons/icon-512-v2.png',
   './icons/apple-touch-icon.png',
-  './icons/favicon-32.png',
-  './icons/favicon-16.png',
   './screenshots/mobile.png',
   './screenshots/desktop.png'
 ];

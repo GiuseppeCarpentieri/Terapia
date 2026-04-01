@@ -216,7 +216,10 @@ header {
   padding: 0.75rem 1rem;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 0.25rem;
+  text-align: center;
 }
 
 .stat-value {
@@ -686,7 +689,18 @@ input[type="number"] {
   }
 
   .dashboard-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .stat-card {
+    min-width: 0;
+    padding: 0.55rem 0.5rem;
+  }
+
+  .stat-card .text-secondary,
+  .stat-label {
+    line-height: 1.2;
   }
 
   .value-input-row,
@@ -798,8 +812,10 @@ input[type="number"] {
     text-align: left !important;
     width: auto;
     min-width: 0;
+    min-height: 2.85rem;
     overflow-wrap: anywhere;
-    align-items: start;
+    align-items: center;
+    align-content: center;
   }
 
   tr td[data-label="Data"],
@@ -868,13 +884,14 @@ input[type="number"] {
     font-weight: 700;
     display: block;
     grid-column: 1;
-    align-self: start;
+    align-self: center;
   }
 
   tr td > * {
     grid-column: 2;
     min-width: 0;
     max-width: 100%;
+    align-self: center;
   }
 
   tr td[data-label="Dose"],
@@ -884,6 +901,7 @@ input[type="number"] {
 
   tr td[data-label="Dose"] {
     row-gap: 0.05rem;
+    min-height: 3rem;
   }
 
   .dose-inline {
@@ -892,6 +910,7 @@ input[type="number"] {
     flex-wrap: nowrap;
     gap: 0.3rem;
     min-width: 0;
+    min-height: 1.8rem;
   }
 
   .dose-value,
@@ -914,6 +933,12 @@ input[type="number"] {
     line-height: 1.35;
   }
 
+  .note-inline {
+    display: block;
+    min-height: 1.4rem;
+    line-height: 1.35;
+  }
+
   tr td[data-label="Tipo"] .badge {
     font-size: 0.82rem;
     font-weight: 700;
@@ -933,6 +958,7 @@ input[type="number"] {
 
   tr td[data-label="Azioni"] {
     justify-items: stretch;
+    min-height: 3rem;
   }
 
   tr td[data-label="Azioni"]::before {
@@ -943,6 +969,7 @@ input[type="number"] {
     width: auto;
     justify-self: end;
     justify-content: flex-end;
+    min-height: 1.8rem;
     flex-wrap: wrap;
     gap: 0.2rem;
   }
