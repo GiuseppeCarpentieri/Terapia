@@ -214,17 +214,21 @@ header {
 
 .stat-card {
   padding: 0.75rem 1rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: minmax(2.4em, auto) minmax(1.5em, auto) minmax(1.8em, auto);
   align-items: center;
-  gap: 0.25rem;
+  justify-items: center;
+  row-gap: 0.25rem;
   text-align: center;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
 
 .stat-label {
@@ -232,6 +236,19 @@ header {
   font-size: 0.875rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  line-height: 1.2;
+}
+
+.stat-card .text-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  line-height: 1.2;
 }
 
 /* Log Section */
@@ -522,6 +539,7 @@ input[type="number"] {
 
   .stat-card {
     padding: 0.6rem 0.75rem;
+    grid-template-rows: minmax(2.3em, auto) minmax(1.35em, auto) minmax(1.7em, auto);
   }
 
   .stat-value {
@@ -696,6 +714,7 @@ input[type="number"] {
   .stat-card {
     min-width: 0;
     padding: 0.55rem 0.5rem;
+    grid-template-rows: minmax(2.6em, auto) minmax(1.3em, auto) minmax(2.1em, auto);
   }
 
   .stat-card .text-secondary,
