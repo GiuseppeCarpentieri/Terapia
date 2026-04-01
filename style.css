@@ -240,7 +240,7 @@ header {
   align-items: center;
   justify-content: center;
   width: 100%;
-  line-height: 1.2;
+  line-height: 1.1;
 }
 
 .stat-card .text-secondary {
@@ -539,7 +539,7 @@ input[type="number"] {
 
   .stat-card {
     padding: 0.6rem 0.75rem;
-    grid-template-rows: minmax(2.3em, auto) minmax(1.35em, auto) minmax(1.7em, auto);
+    grid-template-rows: minmax(1.8em, auto) minmax(1.35em, auto) minmax(1.55em, auto);
   }
 
   .stat-value {
@@ -547,7 +547,9 @@ input[type="number"] {
   }
 
   .stat-label {
-    font-size: 0.7rem;
+    font-size: 0.66rem;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
   }
 
   /* Header: due righe - brand+actions sopra, date picker sotto */
@@ -714,7 +716,7 @@ input[type="number"] {
   .stat-card {
     min-width: 0;
     padding: 0.55rem 0.5rem;
-    grid-template-rows: minmax(2.6em, auto) minmax(1.3em, auto) minmax(2.1em, auto);
+    grid-template-rows: minmax(1.7em, auto) minmax(1.3em, auto) minmax(1.5em, auto);
   }
 
   .stat-card .text-secondary,
