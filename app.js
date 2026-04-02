@@ -61,6 +61,7 @@ class TerapiaApp {
       chartScopeBtns: document.querySelectorAll('#chartScopeBtns button'),
       chartSub: document.getElementById('chartSub'),
       syncRepoBtn: document.getElementById('syncRepoBtn'),
+      deleteAllBtn: document.getElementById('deleteAllBtn'),
       appVersionMenu: document.getElementById('appVersionMenu'),
       appVersion: document.getElementById('appVersion'),
       appVersionToggle: document.getElementById('appVersionToggle'),
@@ -169,11 +170,11 @@ class TerapiaApp {
 
     if (user) {
       const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> ${name}`;
-      this.elements.syncRepoBtn.title = `Cloud attivo per ${user.email}. Click: disconnetti. Tasto destro: esporta XLSX.`;
+      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i>`;
+      this.elements.syncRepoBtn.title = "";
     } else {
-      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> Cloud`;
-      this.elements.syncRepoBtn.title = "Cloud non connesso. Dopo l'accesso i dati si sincronizzano automaticamente.";
+      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i>`;
+      this.elements.syncRepoBtn.title = "";
     }
 
     lucide.createIcons();
@@ -246,6 +247,7 @@ class TerapiaApp {
     };
 
     this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
+    if (this.elements.deleteAllBtn) this.elements.deleteAllBtn.onclick = () => this.deleteAllEntries();
     if (this.elements.installAppBtn) {
       this.elements.installAppBtn.onclick = () => this.installPwa();
     }
@@ -325,9 +327,17 @@ class TerapiaApp {
     // Sync button = cloud status / sign out
     this.elements.syncRepoBtn.onclick = () => {
       const user = auth.currentUser;
-      if (user && confirm(`Connesso come ${user.email}\n\nVuoi disconnetterti?`)) {
-        if (this.unsubscribeFirestore) this.unsubscribeFirestore();
-        auth.signOut();
+      if (user) {
+        if (confirm('Vuoi davvero uscire e disconnettere il Cloud?')) {
+          if (this.unsubscribeFirestore) this.unsubscribeFirestore();
+          auth.signOut().then(() => {
+            this.showToast('Cloud disconnesso', 'info');
+          });
+        }
+      } else {
+        // Se non è loggato, potremmo voler mostrare il login, 
+        // ma seguiamo la richiesta dell'utente specifica sulla disconnessione.
+        this.showToast('Cloud non attivo', 'info');
       }
     };
     this.elements.syncRepoBtn.oncontextmenu = (e) => {
@@ -506,15 +516,16 @@ class TerapiaApp {
       tr.classList.add('draggable-row');
       tr.dataset.id = entry.id;
       const isGlucose = entry.type === 'glucose';
+      const medStyle = !isGlucose ? this.getMedBadgeStyle(entry.medName) : null;
       tr.innerHTML = `
         <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</span></td>
         <td data-label="Orario"><span class="time-inline-value">${time}</span></td>
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
-          <div class="dose-inline">
+          <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
             <span class="dose-value" style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span>
-            <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : 'ml')}</span>
-            ${!isGlucose ? `<span class="dose-med-name" style="color: var(--text-muted); font-size: 0.8rem; background: rgba(255,255,255,0.03); padding: 0.2rem 0.5rem; border-radius: 6px; border: 1px solid var(--glass-border);">${entry.medName}</span>` : ''}
+            <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : '')}</span>
+            ${!isGlucose ? `<span class="badge" style="background: ${medStyle.bg}; color: ${medStyle.color}; border: 1px solid ${medStyle.border}; font-size: 0.725rem; padding: 0.15rem 0.6rem;">${entry.medName}</span>` : ''}
           </div>
         </td>
         <td data-label="Note" style="color: var(--text-secondary); font-size: 0.9rem;"><span class="note-inline">${entry.note || '-'}</span></td>
@@ -719,16 +730,15 @@ class TerapiaApp {
         scales: {
           y: { min: 60, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { weight: '600' } } },
           x: {
-            type: 'linear', min: xMin, max: xMax, bounds: 'ticks',
+            type: 'linear', min: xMin, max: xMax,
             grid: { color: 'rgba(255,255,255,0.06)' },
             ticks: {
-              color: '#94a3b8', maxRotation: 45, minRotation: 0,
-              stepSize: this.chartScope === 'day' ? 3600000 * 2 : 3600000 * 24,
+              color: '#94a3b8', maxRotation: 0, minRotation: 0,
+              maxTicksLimit: this.chartScope === 'day' ? 12 : 8,
               callback: (value) => {
                 const d = new Date(value);
-                return this.chartScope === 'day'
-                  ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
-                  : d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+                if (this.chartScope === 'day') return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
               }
             }
           }
@@ -782,6 +792,36 @@ class TerapiaApp {
         console.error(e);
         this.showToast('Errore durante l\'eliminazione', 'error');
       }
+    }
+  }
+
+  async deleteAllEntries() {
+    if (this.entries.length === 0) {
+      this.showToast('Non ci sono dati da eliminare.', 'info');
+      return;
+    }
+    const count = this.entries.length;
+    const confirmed = confirm(`SEI SICURO? Questa azione cancellerà DEFINITIVAMENTE tutti i ${count} dati salvati.\n\nNon sarà possibile annullare questa operazione.`);
+    if (!confirmed) return;
+    const secondConfirm = confirm('CONFERMA DEFINITIVA: Vuoi davvero svuotare tutto lo storico?');
+    if (!secondConfirm) return;
+    try {
+      this.showToast('Eliminazione in corso...', 'info');
+      const chunkSize = 400;
+      const allEntries = [...this.entries];
+      for (let i = 0; i < allEntries.length; i += chunkSize) {
+        const chunk = allEntries.slice(i, i + chunkSize);
+        const batch = db.batch();
+        chunk.forEach(entry => {
+          const ref = this.userCol().doc(entry.id);
+          batch.delete(ref);
+        });
+        await batch.commit();
+      }
+      this.showToast('Tutti i dati sono stati eliminati.');
+    } catch (e) {
+      console.error(e);
+      this.showToast('Errore durante l\'eliminazione', 'error');
     }
   }
 
@@ -858,25 +898,38 @@ class TerapiaApp {
     reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: false });
+        const workbook = XLSX.read(data, { 
+          type: 'array', 
+          cellDates: true,
+          cellNF: false,
+          cellText: false
+        });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
         if (jsonData.length === 0) { this.showToast('Il file è vuoto', 'error'); return; }
+        
         const importedEntries = this.mapJsonToEntries(jsonData);
         if (importedEntries.length > 0) {
-          const batch = db.batch();
-          importedEntries.forEach(entry => {
-            const ref = this.userCol().doc(entry.id);
-            batch.set(ref, entry);
-          });
-          await batch.commit();
-          this.showToast(`${importedEntries.length} dati importati con successo!`);
+          for (let i = 0; i < importedEntries.length; i += 400) {
+            const chunk = importedEntries.slice(i, i + 400);
+            const batch = db.batch();
+            chunk.forEach(entry => {
+              const ref = this.userCol().doc(entry.id);
+              batch.set(ref, entry);
+            });
+            await batch.commit();
+          }
+          this.showToast(`${importedEntries.length} nuovi dati importati!`);
         } else {
-          this.showToast('Nessun dato compatibile trovato.', 'error');
+          // Controlliamo se jsonData aveva righe ma importedEntries è 0
+          const msg = jsonData.length > 0 ? 
+            'Nessun nuovo dato compatibile trovato (forse duplicati o colonne errate).' : 
+            'Nessun dato trovato nel file.';
+          this.showToast(msg, 'info');
         }
       } catch (err) {
         console.error(err);
-        this.showToast('Errore durante l\'importazione', 'error');
+        this.showToast('L\'importazione è fallita.', 'error');
       }
       this.elements.importInput.value = '';
     };
@@ -885,50 +938,109 @@ class TerapiaApp {
 
   mapJsonToEntries(data) {
     const results = [];
-    data.forEach(row => {
-      let glucoseValue = null, medName = null, medDose = 1, note = '';
-      let dateObj = new Date(), hasDate = false, hasTime = false;
+    const seen = new Set();
+    const existing = new Set(this.entries.map(e => this.getFingerprint(e)));
+
+    data.forEach((row, index) => {
+      let glucose = null, medName = null, dVal = null, note = '', unit = '';
+      let dateObj = new Date(), hasDate = false, hasTime = false, typeHint = null;
+
+      // Piccolo offset per evitare fingerprint identici se manca l'orario preciso
+      dateObj.setMilliseconds(index);
+
       Object.entries(row).forEach(([key, val]) => {
-        if (!val && val !== 0) return;
+        if (val === "" || val === null || val === undefined) return;
         const k = key.toLowerCase().trim();
-        if (k.includes('glic') || k.includes('glucos') || (k.includes('valore') && !k.includes('dose'))) {
-          glucoseValue = parseFloat(val);
-        } else if (k.includes('farm') || k.includes('pastig') || k.includes('med') || k.includes('nome')) {
-          medName = val.toString();
-        } else if (k.includes('dose') || k.includes('quant')) {
-          medDose = val;
-        } else if (k.includes('note') || k.includes('comm')) {
-          note = val.toString();
+        const v = val.toString().trim();
+
+        if (k.includes('tipo')) {
+          if (v.toLowerCase().includes('glic')) typeHint = 'glucose';
+          else if (v.toLowerCase().includes('farm')) typeHint = 'med';
         } else if (k.includes('data') || k.includes('giorno') || k.includes('date')) {
           const d = this.parseExcelDate(val);
           if (d) { dateObj.setFullYear(d.getFullYear(), d.getMonth(), d.getDate()); hasDate = true; }
-        } else if (k.includes('ora') || k.includes('time')) {
+        } else if (k.includes('ora') || k.includes('time') || k.includes('orario')) {
           const t = this.parseExcelTime(val);
           if (t) { dateObj.setHours(t.getHours(), t.getMinutes(), 0, 0); hasTime = true; }
+        } else if (k.includes('farm') || k.includes('med') || (k.includes('nome') && !k.includes('utente') && v.length > 1)) {
+          medName = v;
+        } else if (k.includes('glic') || k.includes('glucos') || (k.includes('valore') && !k.includes('dose'))) {
+          const n = parseFloat(v.replace(',', '.'));
+          if (!isNaN(n)) glucose = n;
+        } else if (k.includes('dose') || k.includes('quant')) {
+          const n = parseFloat(v.replace(',', '.'));
+          if (!isNaN(n)) dVal = n;
+        } else if (k.includes('unit')) {
+          unit = v;
+        } else if (k.includes('note') || k.includes('comm') || k.includes('nota')) {
+          note = v;
         }
       });
-      if (!hasDate || !hasTime) {
-        Object.values(row).forEach(val => {
-          if (val instanceof Date) {
-            if (!hasDate) { dateObj.setFullYear(val.getFullYear(), val.getMonth(), val.getDate()); hasDate = true; }
-            if (!hasTime && (val.getHours() !== 0 || val.getMinutes() !== 0)) { dateObj.setHours(val.getHours(), val.getMinutes(), 0, 0); hasTime = true; }
-          }
+
+      if (!hasDate) {
+        Object.values(row).forEach(v => {
+          if (v instanceof Date && !hasDate) { dateObj.setFullYear(v.getFullYear(), v.getMonth(), v.getDate()); hasDate = true; }
         });
       }
-      const timestamp = dateObj.getTime();
-      if (glucoseValue !== null && !isNaN(glucoseValue)) {
-        results.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 9), type: 'glucose', value: glucoseValue, unit: 'mg/dL', medName: '', note, timestamp });
+
+      if (!typeHint) {
+        if (medName) typeHint = 'med';
+        else if (glucose !== null) typeHint = 'glucose';
       }
-      if (medName) {
-        results.push({ id: Date.now().toString() + Math.random().toString(36).substr(2, 9) + '_m', type: 'med', value: medDose, unit: 'ml', medName, note: glucoseValue !== null ? '' : note, timestamp });
+
+      const timestamp = dateObj.getTime();
+      let e = null;
+
+      if (typeHint === 'glucose' && (glucose !== null || dVal !== null)) {
+        e = {
+          id: 'imp_' + timestamp + '_' + Math.random().toString(36).substr(2, 5),
+          type: 'glucose', value: (glucose || dVal).toString(), unit: unit || 'mg/dL', medName: '', note, timestamp
+        };
+      } else if (typeHint === 'med' && medName) {
+        e = {
+          id: 'imp_' + timestamp + '_' + Math.random().toString(36).substr(2, 5) + '_m',
+          type: 'med', value: (dVal || glucose || 1).toString(), unit: unit || (medName.toLowerCase().includes('insulina') ? 'UI' : 'ml'), medName, note, timestamp
+        };
+      }
+
+      if (e) {
+        const fp = this.getFingerprint(e);
+        if (!existing.has(fp) && !seen.has(fp)) {
+          results.push(e);
+          seen.add(fp);
+        }
       }
     });
     return results;
   }
 
-  parseExcelDate(val) {
+    getMedBadgeStyle(medName) {
+    const name = (medName || '').toLowerCase();
+    if (name.includes('toujeo') || name.includes('insul') || name.includes('lantus') || name.includes('humalog')) {
+      return { bg: 'rgba(236, 72, 153, 0.12)', color: '#f9a8d4', border: 'rgba(236, 72, 153, 0.2)' }; // Rosa
+    }
+    if (name.includes('invokana') || name.includes('jardiance') || name.includes('forxiga')) {
+      return { bg: 'rgba(245, 158, 11, 0.12)', color: '#fcd34d', border: 'rgba(245, 158, 11, 0.2)' }; // Arancio
+    }
+    if (name.includes('tavastibe') || name.includes('metformin') || name.includes('janumet')) {
+      return { bg: 'rgba(139, 92, 246, 0.12)', color: '#c4b5fd', border: 'rgba(139, 92, 246, 0.2)' }; // Viola
+    }
+    return { bg: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: 'rgba(99, 102, 241, 0.2)' }; // Indaco (Default)
+  }
+
+  getFingerprint(e) {
+    return `${e.timestamp}_${e.type}_${e.value}_${e.medName || ''}`;
+  }
+
+parseExcelDate(val) {
     if (val instanceof Date) return val;
     if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
+    if (typeof val === 'string') {
+      const parts = val.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (parts) {
+        return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+      }
+    }
     const d = new Date(val);
     return isNaN(d.getTime()) ? null : d;
   }
@@ -936,13 +1048,12 @@ class TerapiaApp {
   parseExcelTime(val) {
     if (val instanceof Date) return val;
     if (typeof val === 'string') {
-      const match = val.match(/(\d{1,2})[:.](\\d{2})/);
+      const match = val.match(/(\d{1,2})[:.](\d{2})/);
       if (match) { const d = new Date(); d.setHours(parseInt(match[1]), parseInt(match[2]), 0, 0); return d; }
     }
     if (typeof val === 'number' && val < 1) {
       const totalSeconds = Math.round(val * 24 * 60 * 60);
-      const d = new Date();
-      d.setHours(Math.floor(totalSeconds / 3600), Math.floor((totalSeconds % 3600) / 60), 0, 0);
+      const d = new Date(); d.setHours(Math.floor(totalSeconds / 3600), Math.floor((totalSeconds % 3600) / 60), 0, 0);
       return d;
     }
     const d = new Date(val);

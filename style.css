@@ -469,7 +469,7 @@ tr:nth-child(5) { animation-delay: 0.25s; }
 }
 
 .badge-glucose { background: rgba(16, 185, 129, 0.1); color: var(--accent-secondary); }
-.badge-pill { background: rgba(244, 63, 94, 0.1); color: var(--accent-pill); }
+.badge-pill { background: rgba(244, 63, 94, 0.12); color: #f43f5e; border: 1px solid rgba(244, 63, 94, 0.15); }
 
 /* Form styles */
 .modal-overlay {
@@ -828,23 +828,30 @@ input[type="number"] {
 
   header .actions {
     width: 100%;
-    flex: 1 1 auto;
-    justify-content: stretch;
-    flex-wrap: wrap;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   header .actions button {
-    flex: 1 1 calc(50% - 0.5rem);
-    min-width: 0;
+    flex: 1 1 0;
+    min-width: 42px;
+    height: 42px;
+    padding: 0;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+  }
+  
+  header .actions button i[data-lucide] {
+    width: 20px !important;
+    height: 20px !important;
   }
 
-  header .actions button svg,
-  header .actions button .lucide,
-  header .actions button i[data-lucide] {
-    flex: 0 0 auto;
-    width: 1rem;
-    height: 1rem;
+  header .actions button#addEntryBtn {
+    flex: 1 1 0;
   }
 
   .dashboard-grid {
@@ -1171,3 +1178,5 @@ input[type="number"] {
   }
 }
 
+
+.badge-med { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.2); display: inline-flex; align-items: center; }
