@@ -752,16 +752,27 @@ input[type="number"] {
   }
 
   /* Modal: padding ridotto */
-  .modal {
-    padding: 1.25rem;
-    width: 95%;
-    max-height: 90vh;
+  .modal-overlay {
+    align-items: flex-start;
+    padding: 1rem;
     overflow-y: auto;
   }
 
-  .entry-type-grid,
+  .modal {
+    padding: 1.25rem;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    margin: auto 0;
+  }
+
+  .entry-type-grid {
+    gap: 0.75rem;
+  }
+
   .date-time-grid {
     gap: 0.75rem;
+    grid-template-columns: 1fr;
   }
 
   /* Toast: occupa quasi tutta la larghezza */
@@ -819,12 +830,21 @@ input[type="number"] {
     width: 100%;
     flex: 1 1 auto;
     justify-content: stretch;
+    flex-wrap: wrap;
   }
 
   header .actions button {
-    flex: 1 1 0;
+    flex: 1 1 calc(50% - 0.5rem);
     min-width: 0;
     justify-content: center;
+  }
+
+  header .actions button svg,
+  header .actions button .lucide,
+  header .actions button i[data-lucide] {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
   }
 
   .dashboard-grid {

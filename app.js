@@ -155,13 +155,27 @@ class TerapiaApp {
 
   showLoginScreen() {
     document.getElementById('loginOverlay').style.display = 'flex';
+    this.updateSyncRepoButton();
     document.getElementById('googleSignInBtn').onclick = () => this.signInWithGoogle();
   }
 
   showApp(user) {
     document.getElementById('loginOverlay').style.display = 'none';
-    const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-    this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> ${name}`;
+    this.updateSyncRepoButton(user);
+  }
+
+  updateSyncRepoButton(user = auth.currentUser) {
+    if (!this.elements.syncRepoBtn) return;
+
+    if (user) {
+      const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> ${name}`;
+      this.elements.syncRepoBtn.title = `Cloud attivo per ${user.email}. Click: disconnetti. Tasto destro: esporta XLSX.`;
+    } else {
+      this.elements.syncRepoBtn.innerHTML = `<i data-lucide="cloud"></i> Cloud`;
+      this.elements.syncRepoBtn.title = "Cloud non connesso. Dopo l'accesso i dati si sincronizzano automaticamente.";
+    }
+
     lucide.createIcons();
   }
 
