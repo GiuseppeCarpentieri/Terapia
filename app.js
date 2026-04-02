@@ -65,7 +65,9 @@ class TerapiaApp {
       appVersionMenu: document.getElementById('appVersionMenu'),
       appVersion: document.getElementById('appVersion'),
       appVersionToggle: document.getElementById('appVersionToggle'),
-      glucoseChart: null
+      glucoseChart: null,
+      entryDate: document.getElementById('entryDate'),
+      entryTime: document.getElementById('entryTime')
     };
 
     this.viewAll = true;
@@ -76,7 +78,6 @@ class TerapiaApp {
     this.setupVersionToggle();
     this.setupPwaInstall();
     this.initFirebase();
-    this.setupTimeWheels();
   }
 
   renderAppVersion() {
@@ -244,11 +245,11 @@ class TerapiaApp {
       this.updateUnitsDataList('med'); // Aggiorna elenco unità
       this.elements.entryModal.style.display = 'flex';
       const dateStr = this.currentDate.toISOString().split('T')[0];
-      document.getElementById('entryDate').value = dateStr;
+      this.elements.entryDate.value = dateStr;
+      
       const now = new Date();
-      document.getElementById('entryHours').value = now.getHours().toString().padStart(2, '0');
-      document.getElementById('entryMinutes').value = now.getMinutes().toString().padStart(2, '0');
-      this.scrollToTimeWheel(now.getHours(), now.getMinutes());
+      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+      this.elements.entryTime.value = timeStr;
     };
 
     this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
@@ -629,11 +630,9 @@ class TerapiaApp {
     this.elements.unitInput.value = entry.unit || (entry.type === 'glucose' ? 'mg/dL' : 'ml');
     this.elements.medName.value = entry.medName || '';
     document.getElementById('entryNote').value = entry.note || '';
-    const d = new Date(entry.timestamp);
-    document.getElementById('entryDate').value = d.toISOString().split('T')[0];
-    document.getElementById('entryHours').value = d.getHours().toString().padStart(2, '0');
-    document.getElementById('entryMinutes').value = d.getMinutes().toString().padStart(2, '0');
-    this.scrollToTimeWheel(d.getHours(), d.getMinutes());
+    this.elements.entryDate.value = d.toISOString().split('T')[0];
+    const timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+    this.elements.entryTime.value = timeStr;
     this.elements.entryModal.style.display = 'flex';
   }
 
@@ -757,51 +756,14 @@ class TerapiaApp {
   }
 
 
-  setupTimeWheels() {
-    const wheels = document.querySelectorAll('.time-wheel');
-    wheels.forEach(wheel => {
-      const count = parseInt(wheel.dataset.count);
-      // Riempiamo le ruote
-      let html = '';
-      for (let i = 0; i < count; i++) {
-        const val = i.toString().padStart(2, '0');
-        html += `<div data-val="${val}">${val}</div>`;
-      }
-      wheel.innerHTML = html;
-
-      // Gestore scorrimento
-      wheel.onscroll = () => {
-        const scrollTop = wheel.scrollTop;
-        const index = Math.round(scrollTop / 40);
-        const children = wheel.querySelectorAll('div');
-        children.forEach((child, i) => {
-          if (i === index) {
-            child.classList.add('active');
-            const targetInput = wheel.id === 'wheelHours' ? 'entryHours' : 'entryMinutes';
-            document.getElementById(targetInput).value = child.dataset.val;
-          } else {
-            child.classList.remove('active');
-          }
-        });
-      };
-    });
-  }
-
-  scrollToTimeWheel(hours, minutes) {
-    const hWheel = document.getElementById('wheelHours');
-    const mWheel = document.getElementById('wheelMinutes');
-    if (hWheel) hWheel.scrollTop = parseInt(hours) * 40;
-    if (mWheel) mWheel.scrollTop = parseInt(minutes) * 40;
-  }
-
   // ===== CRUD =====
   async saveEntry() {
     const form = this.elements.entryForm;
     const type = form.type.value;
     const dateValue = document.getElementById('entryDate').value;
-    const hours = parseInt(document.getElementById('entryHours').value || 0);
-    const minutes = parseInt(document.getElementById('entryMinutes').value || 0);
-    const [year, month, day] = dateValue.split('-').map(v => parseInt(v));
+    const timeValue = this.elements.entryTime.value || "00:00";
+    const [hours, minutes] = timeValue.split(':').map(Number);
+    const [year, month, day] = dateValue.split('-').map(Number);
     const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
 
     const entryData = {
