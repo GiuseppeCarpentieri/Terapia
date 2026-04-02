@@ -867,9 +867,16 @@ input[type="number"] {
 
   .modal-actions {
     display: flex;
+    flex-direction: row;
     gap: 0.75rem;
     margin-top: 1.25rem;
     padding-bottom: 1.25rem;
+  }
+
+  .modal-actions button {
+    flex: 1;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
   }
 
   .radio-label {
@@ -905,11 +912,10 @@ input[type="number"] {
   }
   
   .date-time-grid {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
 
-  
   .modal input[type="date"],
   .modal input[type="time"] {
     min-height: 3.5rem;
@@ -920,11 +926,6 @@ input[type="number"] {
 
   .entry-type-grid {
     gap: 0.75rem;
-  }
-
-  .date-time-grid {
-    gap: 0.65rem;
-    grid-template-columns: 1fr;
   }
 
   /* Toast: occupa quasi tutta la larghezza */
@@ -1397,10 +1398,11 @@ input[type="number"] {
 
 @media (max-width: 560px) {
   .date-time-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
   }
 }
+
 
 
 

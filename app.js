@@ -45,7 +45,7 @@ class TerapiaApp {
       avgGlucose: document.getElementById('avgGlucose'),
       medsCount: document.getElementById('medsCount'),
       statusIndicator: document.getElementById('statusIndicator'),
-      closeModalBtns: document.querySelectorAll('.close-modal'),
+      closeModalBtns: document.querySelectorAll('.close-modal, .cancel-btn'),
       entryTypeRadios: document.querySelectorAll('input[name="type"]'),
       entryValue: document.getElementById('entryValue'),
       unitInput: document.getElementById('unitInput'),
