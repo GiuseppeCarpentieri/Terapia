@@ -182,13 +182,13 @@
   <!-- Add Entry Modal -->
   <div class="modal-overlay" id="entryModal">
     <div class="modal glass-panel">
-      <div class="modal-header" style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: start;">
+      <div class="modal-header">
         <div>
           <h2 id="modalTitle" style="font-size: 1.25rem; margin-bottom: 0.25rem;">Nuovo Inserimento</h2>
           <p id="modalSub" class="text-secondary">Aggiungi una lettura o un'assunzione</p>
         </div>
-        <button class="secondary icon-btn close-modal" style="padding: 0.5rem;">
-          <i data-lucide="x"></i>
+        <button type="button" class="close-modal">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
       </div>
       
@@ -196,10 +196,10 @@
         <div class="form-group">
           <label>Tipo di Inserimento</label>
           <div class="entry-type-grid">
-            <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
+            <label class="radio-label glass-panel">
               <input type="radio" name="type" value="med" checked style="width: auto;"> Farmaco
             </label>
-            <label class="radio-label glass-panel" style="padding: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-radius: 12px; font-weight: 500;">
+            <label class="radio-label glass-panel">
               <input type="radio" name="type" value="glucose" style="width: auto;"> Glicemia
             </label>
           </div>
