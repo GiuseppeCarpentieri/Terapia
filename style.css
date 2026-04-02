@@ -1221,44 +1221,58 @@ input[type="number"] {
   gap: 1.25rem;
 }
 
+.date-time-grid .form-group label {
+  text-align: center;
+  width: 100%;
+}
+
+.date-input-wrapper,
 .time-input-wrapper {
   display: flex;
   align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   overflow: hidden;
-  height: 3rem;
+  height: 2.75rem;
   transition: var(--transition-smooth);
 }
 
+.date-input-wrapper:focus-within,
 .time-input-wrapper:focus-within {
   border-color: var(--accent-primary);
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
+.date-input-wrapper input,
 .time-input-wrapper input {
-  flex: 1;
   border: none !important;
   background: transparent !important;
   text-align: center;
   font-weight: 700;
-  font-size: 1.25rem;
+  font-size: 1rem;
   padding: 0 !important;
   height: 100% !important;
-  width: 50px !important;
   color: var(--text-primary);
   outline: none;
 }
 
+
+#entryDay, #entryMonth, #entryHH, #entryMM { width: 45px !important; }
+#entryYear { width: 65px !important; }
+
+.date-separator,
 .time-separator {
   color: var(--text-secondary);
   font-weight: 800;
-  font-size: 1.2rem;
-  padding: 0 0.25rem;
-  opacity: 0.7;
+  font-size: 1rem;
+  padding: 0 0.1rem;
+  opacity: 0.4;
 }
+
+
 
 @media (max-width: 560px) {
   .date-time-grid {

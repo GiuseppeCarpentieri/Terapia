@@ -66,7 +66,9 @@ class TerapiaApp {
       appVersion: document.getElementById('appVersion'),
       appVersionToggle: document.getElementById('appVersionToggle'),
       glucoseChart: null,
-      entryDate: document.getElementById('entryDate'),
+      entryDay: document.getElementById('entryDay'),
+      entryMonth: document.getElementById('entryMonth'),
+      entryYear: document.getElementById('entryYear'),
       entryHH: document.getElementById('entryHH'),
       entryMM: document.getElementById('entryMM')
     };
@@ -245,8 +247,9 @@ class TerapiaApp {
       this.updateMedsDataList(); // Aggiorna elenco farmaci
       this.updateUnitsDataList('med'); // Aggiorna elenco unità
       this.elements.entryModal.style.display = 'flex';
-      const dateStr = this.currentDate.toISOString().split('T')[0];
-      this.elements.entryDate.value = dateStr;
+      this.elements.entryDay.value = this.currentDate.getDate().toString().padStart(2, '0');
+      this.elements.entryMonth.value = (this.currentDate.getMonth() + 1).toString().padStart(2, '0');
+      this.elements.entryYear.value = this.currentDate.getFullYear();
       
       const now = new Date();
       this.elements.entryHH.value = now.getHours().toString().padStart(2, '0');
@@ -631,7 +634,9 @@ class TerapiaApp {
     this.elements.unitInput.value = entry.unit || (entry.type === 'glucose' ? 'mg/dL' : 'ml');
     this.elements.medName.value = entry.medName || '';
     document.getElementById('entryNote').value = entry.note || '';
-    this.elements.entryDate.value = d.toISOString().split('T')[0];
+    this.elements.entryDay.value = d.getDate().toString().padStart(2, '0');
+    this.elements.entryMonth.value = (d.getMonth() + 1).toString().padStart(2, '0');
+    this.elements.entryYear.value = d.getFullYear();
     this.elements.entryHH.value = d.getHours().toString().padStart(2, '0');
     this.elements.entryMM.value = d.getMinutes().toString().padStart(2, '0');
     this.elements.entryModal.style.display = 'flex';
@@ -754,10 +759,12 @@ class TerapiaApp {
         }
       }
     });
-    if (this.elements.entryHH && this.elements.entryMM) {
-      this.elements.entryHH.oninput = (e) => {
-        if (e.target.value.length >= 2) this.elements.entryMM.focus();
-      };
+    const { entryDay, entryMonth, entryYear, entryHH, entryMM } = this.elements;
+    if (entryDay && entryMonth && entryYear && entryHH && entryMM) {
+      entryDay.oninput = (e) => { if (e.target.value.length >= 2) entryMonth.focus(); };
+      entryMonth.oninput = (e) => { if (e.target.value.length >= 2) entryYear.focus(); };
+      entryYear.oninput = (e) => { if (e.target.value.length >= 4) entryHH.focus(); };
+      entryHH.oninput = (e) => { if (e.target.value.length >= 2) entryMM.focus(); };
     }
   }
 
@@ -765,12 +772,11 @@ class TerapiaApp {
   async saveEntry() {
     const form = this.elements.entryForm;
     const type = form.type.value;
-    const dateValue = this.elements.entryDate.value;
-    const hh = this.elements.entryHH.value || "00";
-    const mm = this.elements.entryMM.value || "00";
-    const hours = parseInt(hh);
-    const minutes = parseInt(mm);
-    const [year, month, day] = dateValue.split('-').map(Number);
+    const day = parseInt(this.elements.entryDay.value) || 1;
+    const month = parseInt(this.elements.entryMonth.value) || 1;
+    const year = parseInt(this.elements.entryYear.value) || new Date().getFullYear();
+    const hours = parseInt(this.elements.entryHH.value) || 0;
+    const minutes = parseInt(this.elements.entryMM.value) || 0;
     const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
 
     const entryData = {
