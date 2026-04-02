@@ -605,7 +605,6 @@ input[type="number"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
   padding: 0.85rem 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -616,30 +615,23 @@ input[type="number"] {
   text-align: center;
 }
 
+
 .radio-label input[type="radio"] {
   display: none;
 }
 
 .radio-label::before {
-  content: '';
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--text-secondary);
-  border-radius: 50%;
-  transition: all 0.3s ease;
+  display: none;
 }
 
 .radio-label:has(input:checked) {
   border-color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.1) !important;
-  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.15) !important;
+  color: var(--text-primary);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
-.radio-label:has(input:checked)::before {
-  border-color: var(--accent-primary);
-  background: var(--accent-primary);
-  box-shadow: inset 0 0 0 3px var(--bg-card);
-}
 
 .app-version-panel {
   position: absolute;
