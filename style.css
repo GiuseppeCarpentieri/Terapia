@@ -760,10 +760,18 @@ input[type="number"] {
 
   .modal {
     padding: 1.25rem;
-    width: 100%;
+    width: calc(100% - 1rem); /* Lasciamo aria ai bordi */
     max-height: none;
     overflow: visible;
-    margin: auto 0;
+    margin: 1rem 0.5rem;
+    box-sizing: border-box;
+  }
+  
+  .modal input[type="date"],
+  .modal input[type="time"] {
+    min-height: 3rem; /* Area di tocco più grande per Samsung */
+    font-size: 1rem;
+    padding: 0.75rem;
   }
 
   .entry-type-grid {

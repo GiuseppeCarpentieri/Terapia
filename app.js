@@ -239,6 +239,8 @@ class TerapiaApp {
       this.elements.submitBtn.innerText = "Salva Dato";
       this.elements.entryForm.reset();
       this.toggleEntryType('med');
+      this.updateMedsDataList(); // Aggiorna elenco farmaci
+      this.updateUnitsDataList('med'); // Aggiorna elenco unità
       this.elements.entryModal.style.display = 'flex';
       const dateStr = this.currentDate.toISOString().split('T')[0];
       document.getElementById('entryDate').value = dateStr;
@@ -409,8 +411,10 @@ class TerapiaApp {
 
   updateUnitsDataList(type) {
     if (!this.elements.unitsList) return;
-    const usedUnits = [...new Set(this.entries.filter(e => e.type === type && e.unit).map(e => e.unit))].sort();
-    this.elements.unitsList.innerHTML = usedUnits.map(u => `<option value="${u}">`).join('');
+    const defaultUnits = type === 'glucose' ? ['mg/dL', 'mmol/L'] : ['UI', 'ml', 'compresse', 'gocce', 'mg', 'bustine'];
+    const historyUnits = this.entries.filter(e => e.type === type && e.unit).map(e => e.unit);
+    const allUnits = [...new Set([...defaultUnits, ...historyUnits])].sort();
+    this.elements.unitsList.innerHTML = allUnits.map(u => `<option value="${u}">`).join('');
   }
 
   renderDateList() {
