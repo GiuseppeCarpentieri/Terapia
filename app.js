@@ -76,6 +76,7 @@ class TerapiaApp {
     this.setupVersionToggle();
     this.setupPwaInstall();
     this.initFirebase();
+    this.setupTimeWheels();
   }
 
   renderAppVersion() {
@@ -247,6 +248,7 @@ class TerapiaApp {
       const now = new Date();
       document.getElementById('entryHours').value = now.getHours().toString().padStart(2, '0');
       document.getElementById('entryMinutes').value = now.getMinutes().toString().padStart(2, '0');
+      this.scrollToTimeWheel(now.getHours(), now.getMinutes());
     };
 
     this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
@@ -631,6 +633,7 @@ class TerapiaApp {
     document.getElementById('entryDate').value = d.toISOString().split('T')[0];
     document.getElementById('entryHours').value = d.getHours().toString().padStart(2, '0');
     document.getElementById('entryMinutes').value = d.getMinutes().toString().padStart(2, '0');
+    this.scrollToTimeWheel(d.getHours(), d.getMinutes());
     this.elements.entryModal.style.display = 'flex';
   }
 
@@ -751,6 +754,44 @@ class TerapiaApp {
         }
       }
     });
+  }
+
+
+  setupTimeWheels() {
+    const wheels = document.querySelectorAll('.time-wheel');
+    wheels.forEach(wheel => {
+      const count = parseInt(wheel.dataset.count);
+      // Riempiamo le ruote
+      let html = '';
+      for (let i = 0; i < count; i++) {
+        const val = i.toString().padStart(2, '0');
+        html += `<div data-val="${val}">${val}</div>`;
+      }
+      wheel.innerHTML = html;
+
+      // Gestore scorrimento
+      wheel.onscroll = () => {
+        const scrollTop = wheel.scrollTop;
+        const index = Math.round(scrollTop / 40);
+        const children = wheel.querySelectorAll('div');
+        children.forEach((child, i) => {
+          if (i === index) {
+            child.classList.add('active');
+            const targetInput = wheel.id === 'wheelHours' ? 'entryHours' : 'entryMinutes';
+            document.getElementById(targetInput).value = child.dataset.val;
+          } else {
+            child.classList.remove('active');
+          }
+        });
+      };
+    });
+  }
+
+  scrollToTimeWheel(hours, minutes) {
+    const hWheel = document.getElementById('wheelHours');
+    const mWheel = document.getElementById('wheelMinutes');
+    if (hWheel) hWheel.scrollTop = parseInt(hours) * 40;
+    if (mWheel) mWheel.scrollTop = parseInt(minutes) * 40;
   }
 
   // ===== CRUD =====
