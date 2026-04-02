@@ -760,29 +760,41 @@ input[type="number"] {
   }
 
   .modal {
-    padding: 1.25rem;
-    width: 92%;
-    max-width: 480px;
-    max-height: 85vh;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    position: absolute;
+    bottom: 0;
+    max-height: 92vh;
     overflow-y: auto;
-    margin: 1rem auto;
+    border-radius: 32px 32px 0 0;
     box-sizing: border-box;
-    border-radius: 24px;
-    display: flex;
-    flex-direction: column;
+    animation: slideUp 0.4s cubic-bezier(0, 0, 0.2, 1);
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
   
   .modal-overlay {
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    padding: 1rem 0;
+    padding: 0;
+  }
+  
+  .date-time-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
   }
   
   .modal input[type="date"],
   .modal input[type="time"] {
-    min-height: 3.5rem; /* Maggiore area di tocco */
+    min-height: 3.5rem;
     font-size: 1.1rem;
-    padding: 0.75rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .entry-type-grid {
