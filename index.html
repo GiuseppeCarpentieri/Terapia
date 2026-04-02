@@ -231,8 +231,12 @@
             <input type="date" id="entryDate" required>
           </div>
           <div class="form-group">
-            <label>Orario</label>
-            <input type="time" id="entryTime" required>
+            <label>Orario (HH:mm)</label>
+            <div class="time-input-wrapper">
+              <input type="number" id="entryHH" min="0" max="23" placeholder="HH" required>
+              <span class="time-separator">:</span>
+              <input type="number" id="entryMM" min="0" max="59" placeholder="mm" required>
+            </div>
           </div>
         </div>
         

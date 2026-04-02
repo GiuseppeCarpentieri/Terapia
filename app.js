@@ -67,7 +67,8 @@ class TerapiaApp {
       appVersionToggle: document.getElementById('appVersionToggle'),
       glucoseChart: null,
       entryDate: document.getElementById('entryDate'),
-      entryTime: document.getElementById('entryTime')
+      entryHH: document.getElementById('entryHH'),
+      entryMM: document.getElementById('entryMM')
     };
 
     this.viewAll = true;
@@ -248,8 +249,8 @@ class TerapiaApp {
       this.elements.entryDate.value = dateStr;
       
       const now = new Date();
-      const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-      this.elements.entryTime.value = timeStr;
+      this.elements.entryHH.value = now.getHours().toString().padStart(2, '0');
+      this.elements.entryMM.value = now.getMinutes().toString().padStart(2, '0');
     };
 
     this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
@@ -631,8 +632,8 @@ class TerapiaApp {
     this.elements.medName.value = entry.medName || '';
     document.getElementById('entryNote').value = entry.note || '';
     this.elements.entryDate.value = d.toISOString().split('T')[0];
-    const timeStr = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-    this.elements.entryTime.value = timeStr;
+    this.elements.entryHH.value = d.getHours().toString().padStart(2, '0');
+    this.elements.entryMM.value = d.getMinutes().toString().padStart(2, '0');
     this.elements.entryModal.style.display = 'flex';
   }
 
@@ -753,16 +754,22 @@ class TerapiaApp {
         }
       }
     });
+    if (this.elements.entryHH && this.elements.entryMM) {
+      this.elements.entryHH.oninput = (e) => {
+        if (e.target.value.length >= 2) this.elements.entryMM.focus();
+      };
+    }
   }
-
 
   // ===== CRUD =====
   async saveEntry() {
     const form = this.elements.entryForm;
     const type = form.type.value;
-    const dateValue = document.getElementById('entryDate').value;
-    const timeValue = this.elements.entryTime.value || "00:00";
-    const [hours, minutes] = timeValue.split(':').map(Number);
+    const dateValue = this.elements.entryDate.value;
+    const hh = this.elements.entryHH.value || "00";
+    const mm = this.elements.entryMM.value || "00";
+    const hours = parseInt(hh);
+    const minutes = parseInt(mm);
     const [year, month, day] = dateValue.split('-').map(Number);
     const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
 
