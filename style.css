@@ -763,11 +763,19 @@ input[type="number"] {
     padding: 1.25rem;
     width: 92%;
     max-width: 480px;
-    max-height: none;
-    overflow: visible;
+    max-height: 85vh;
+    overflow-y: auto;
     margin: 1rem auto;
     box-sizing: border-box;
-    border-radius: 20px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-overlay {
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 0;
   }
   
   .modal input[type="date"],
