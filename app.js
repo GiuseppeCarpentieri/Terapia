@@ -245,7 +245,8 @@ class TerapiaApp {
       const dateStr = this.currentDate.toISOString().split('T')[0];
       document.getElementById('entryDate').value = dateStr;
       const now = new Date();
-      this.elements.entryForm.entryTime.value = now.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
+      document.getElementById('entryHours').value = now.getHours().toString().padStart(2, '0');
+      document.getElementById('entryMinutes').value = now.getMinutes().toString().padStart(2, '0');
     };
 
     this.elements.exportAllBtn.onclick = () => this.downloadHistoryXLSX();
@@ -628,7 +629,8 @@ class TerapiaApp {
     document.getElementById('entryNote').value = entry.note || '';
     const d = new Date(entry.timestamp);
     document.getElementById('entryDate').value = d.toISOString().split('T')[0];
-    form.entryTime.value = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit', hour12: false });
+    document.getElementById('entryHours').value = d.getHours().toString().padStart(2, '0');
+    document.getElementById('entryMinutes').value = d.getMinutes().toString().padStart(2, '0');
     this.elements.entryModal.style.display = 'flex';
   }
 
@@ -756,9 +758,9 @@ class TerapiaApp {
     const form = this.elements.entryForm;
     const type = form.type.value;
     const dateValue = document.getElementById('entryDate').value;
-    const timeValue = form.entryTime.value;
+    const hours = parseInt(document.getElementById('entryHours').value || 0);
+    const minutes = parseInt(document.getElementById('entryMinutes').value || 0);
     const [year, month, day] = dateValue.split('-').map(v => parseInt(v));
-    const [hours, minutes] = timeValue.split(':').map(v => parseInt(v));
     const timestamp = new Date(year, month - 1, day, hours, minutes, 0, 0).getTime();
 
     const entryData = {
