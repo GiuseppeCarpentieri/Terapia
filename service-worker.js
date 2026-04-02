@@ -1,4 +1,4 @@
-const CACHE_NAME = 'terapia-pwa-v110';
+const CACHE_NAME = 'terapia-pwa-v111';
 const APP_ASSETS = [
   './',
   './index.html',

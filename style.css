@@ -620,9 +620,7 @@ input[type="number"] {
   display: none;
 }
 
-.radio-label::before {
-  display: none;
-}
+
 
 .radio-label:has(input:checked) {
   border-color: var(--accent-primary);
@@ -877,7 +875,6 @@ input[type="number"] {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
     border-radius: 12px;
     font-weight: 600;
     font-size: 0.9rem;
