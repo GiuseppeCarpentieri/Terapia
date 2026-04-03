@@ -70,7 +70,8 @@ class TerapiaApp {
       entryMonth: document.getElementById('entryMonth'),
       entryYear: document.getElementById('entryYear'),
       entryHH: document.getElementById('entryHH'),
-      entryMM: document.getElementById('entryMM')
+      entryMM: document.getElementById('entryMM'),
+      entryNote: document.getElementById('entryNote')
     };
 
     this.viewAll = true;
@@ -633,7 +634,9 @@ class TerapiaApp {
     this.elements.entryValue.value = entry.value;
     this.elements.unitInput.value = entry.unit || (entry.type === 'glucose' ? 'mg/dL' : 'ml');
     this.elements.medName.value = entry.medName || '';
-    document.getElementById('entryNote').value = entry.note || '';
+    this.elements.entryNote.value = entry.note || '';
+
+    const d = new Date(entry.timestamp);
     this.elements.entryDay.value = d.getDate().toString().padStart(2, '0');
     this.elements.entryMonth.value = (d.getMonth() + 1).toString().padStart(2, '0');
     this.elements.entryYear.value = d.getFullYear();
@@ -784,7 +787,7 @@ class TerapiaApp {
       value: this.elements.entryValue.value,
       unit: this.elements.unitInput.value,
       medName: type === 'med' ? this.elements.medName.value : '',
-      note: document.getElementById('entryNote').value,
+      note: this.elements.entryNote.value,
       timestamp
     };
 
