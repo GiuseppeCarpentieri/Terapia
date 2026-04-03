@@ -86,7 +86,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.6rem;
+  gap: 1.8rem; /* Ridotto per un miglior equilibrio visivo */
   min-width: 0;
   margin-left: auto;
   flex: 0 1 auto;
@@ -630,11 +630,15 @@ input[type="number"] {
   box-shadow: inset 0 0 0 1px var(--accent-primary);
 }
 
+.app-version-menu {
+  position: relative;
+  display: flex;
+}
 
 .app-version-panel {
   position: absolute;
-  top: calc(100% + 0.45rem);
-  right: 0;
+  top: 50%;
+  right: calc(100% + 0.6rem);
   left: auto;
   display: flex;
   align-items: center;
@@ -651,15 +655,14 @@ input[type="number"] {
   white-space: nowrap;
   z-index: 101;
   opacity: 0;
-  transform: translateY(0.3rem);
+  transform: translateY(-50%) translateX(10px);
   pointer-events: none;
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 
-
 .app-version-menu.is-open .app-version-panel {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(-50%) translateX(0);
   pointer-events: auto;
 }
 
@@ -740,7 +743,7 @@ input[type="number"] {
   }
 
   header .brand-meta {
-    gap: 0.45rem;
+    gap: 0.9rem;
   }
 
   header .brand h1 {
