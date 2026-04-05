@@ -161,12 +161,25 @@ class TerapiaApp {
   }
 
   showLoginScreen() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+
     document.getElementById('loginOverlay').style.display = 'flex';
     this.updateSyncRepoButton();
     document.getElementById('googleSignInBtn').onclick = () => this.signInWithGoogle();
   }
 
   showApp(user) {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        // Add a small delay to make the transition smoother
+        setTimeout(() => {
+            loadingOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 500);
+        }, 300);
+    }
     document.getElementById('loginOverlay').style.display = 'none';
     this.updateSyncRepoButton(user);
   }
@@ -203,6 +216,12 @@ class TerapiaApp {
         this.entries = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
         this.updateUI();
         this.checkLocalStorageMigration();
+        
+        // Final fallback to hide loading if not already hidden
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+          loadingOverlay.style.display = 'none';
+        }
       }, error => {
         console.error('Firestore error:', error);
         this.showToast('Errore di connessione al cloud', 'error');

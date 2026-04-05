@@ -34,8 +34,20 @@
 </head>
 <body>
 
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" style="display:flex; position:fixed; inset:0; z-index:10000; background:rgba(10,15,30,1); backdrop-filter:blur(20px); align-items:center; justify-content:center; flex-direction:column; gap:2rem;">
+    <div class="loader-container">
+      <div class="loader"></div>
+      <div class="loader-icon">&#x1F48A;</div>
+    </div>
+    <div style="text-align:center;">
+      <h2 style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem; letter-spacing:-1px;">Terapia</h2>
+      <p style="color:#94a3b8; font-size:0.9rem; letter-spacing:1px; text-transform:uppercase;">Inizializzazione in corso...</p>
+    </div>
+  </div>
+
   <!-- Login Overlay -->
-  <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(10,15,30,0.97); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+  <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(10,15,30,0.98); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
     <div style="background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:3rem 2.5rem; max-width:400px; width:90%; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
       <div style="width:72px;height:72px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">&#x1F48A;</div>
       <h2 style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">Terapia</h2>
