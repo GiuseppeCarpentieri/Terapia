@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.05.112';
+const APP_VERSION = 'v2026.04.05.113';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -149,6 +149,14 @@ class TerapiaApp {
     auth.onAuthStateChanged(user => {
       if (user) {
         this.currentUserId = user.uid;
+        
+        // Show loading screen while we wait for data sync
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+          loadingOverlay.style.display = 'flex';
+          loadingOverlay.style.opacity = '1';
+        }
+
         this.showApp(user);
         this.setupEventListeners();
         this.updateMedsDataList();
@@ -164,26 +172,26 @@ class TerapiaApp {
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (!loadingOverlay || loadingOverlay.style.display === 'none') return;
 
-    // Add a transition-out class or just set opacity
     loadingOverlay.style.opacity = '0';
     setTimeout(() => {
         loadingOverlay.style.display = 'none';
-    }, 500); // Wait for the transition defined in CSS
+        loadingOverlay.style.opacity = '1'; // Reset for next use
+    }, 500);
   }
 
   showLoginScreen() {
-    this.hideLoading();
+    // If not logged in, we ensure the login overlay is visible and the loading is gone
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    
     document.getElementById('loginOverlay').style.display = 'flex';
     this.updateSyncRepoButton();
-    document.getElementById('googleSignInBtn').onclick = () => this.signInWithGoogle();
+    const googleBtn = document.getElementById('googleSignInBtn');
+    if (googleBtn) googleBtn.onclick = () => this.signInWithGoogle();
   }
 
   showApp(user) {
-    // Adding a small delay to allow the loading state to be visible if initialization is very fast
-    setTimeout(() => {
-      this.hideLoading();
-    }, 300);
-    
+    // Hide login and prepare app UI
     document.getElementById('loginOverlay').style.display = 'none';
     this.updateSyncRepoButton(user);
   }
@@ -204,9 +212,17 @@ class TerapiaApp {
   }
 
   signInWithGoogle() {
+    // Show loading while the popup is opening/processing
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.style.opacity = '1';
+    }
+
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider).catch(err => {
       console.error(err);
+      this.hideLoading();
       alert('Errore durante l\'accesso. Riprova.');
     });
   }
