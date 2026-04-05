@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.03.111';
+const APP_VERSION = 'v2026.04.05.112';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -160,26 +160,30 @@ class TerapiaApp {
     });
   }
 
-  showLoginScreen() {
+  hideLoading() {
     const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) loadingOverlay.style.display = 'none';
+    if (!loadingOverlay || loadingOverlay.style.display === 'none') return;
 
+    // Add a transition-out class or just set opacity
+    loadingOverlay.style.opacity = '0';
+    setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+    }, 500); // Wait for the transition defined in CSS
+  }
+
+  showLoginScreen() {
+    this.hideLoading();
     document.getElementById('loginOverlay').style.display = 'flex';
     this.updateSyncRepoButton();
     document.getElementById('googleSignInBtn').onclick = () => this.signInWithGoogle();
   }
 
   showApp(user) {
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    if (loadingOverlay) {
-        // Add a small delay to make the transition smoother
-        setTimeout(() => {
-            loadingOverlay.style.opacity = '0';
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-            }, 500);
-        }, 300);
-    }
+    // Adding a small delay to allow the loading state to be visible if initialization is very fast
+    setTimeout(() => {
+      this.hideLoading();
+    }, 300);
+    
     document.getElementById('loginOverlay').style.display = 'none';
     this.updateSyncRepoButton(user);
   }
@@ -217,13 +221,10 @@ class TerapiaApp {
         this.updateUI();
         this.checkLocalStorageMigration();
         
-        // Final fallback to hide loading if not already hidden
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        if (loadingOverlay && loadingOverlay.style.display !== 'none') {
-          loadingOverlay.style.display = 'none';
-        }
+        this.hideLoading();
       }, error => {
         console.error('Firestore error:', error);
+        this.hideLoading();
         this.showToast('Errore di connessione al cloud', 'error');
       });
   }

@@ -41,6 +41,7 @@
 
 #loadingOverlay {
   transition: opacity 0.5s ease-out;
+  opacity: 1;
 }
 
 .loader-container {
