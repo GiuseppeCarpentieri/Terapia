@@ -1077,16 +1077,34 @@ class TerapiaApp {
 
     getMedBadgeStyle(medName) {
     const name = (medName || '').toLowerCase();
+    
+    // Insuline - Rosa (Vibrante)
     if (name.includes('toujeo') || name.includes('insul') || name.includes('lantus') || name.includes('humalog')) {
-      return { bg: 'rgba(236, 72, 153, 0.12)', color: '#f9a8d4', border: 'rgba(236, 72, 153, 0.2)' }; // Rosa
+      return { bg: 'rgba(236, 72, 153, 0.12)', color: '#f9a8d4', border: 'rgba(236, 72, 153, 0.2)' };
     }
+    
+    // Antidiabetici orali (SGLT2i / Altri) - Arancio/Ambra
     if (name.includes('invokana') || name.includes('jardiance') || name.includes('forxiga')) {
-      return { bg: 'rgba(245, 158, 11, 0.12)', color: '#fcd34d', border: 'rgba(245, 158, 11, 0.2)' }; // Arancio
+      return { bg: 'rgba(245, 158, 11, 0.12)', color: '#fcd34d', border: 'rgba(245, 158, 11, 0.2)' };
     }
-    if (name.includes('tavastibe') || name.includes('metformin') || name.includes('janumet')) {
-      return { bg: 'rgba(139, 92, 246, 0.12)', color: '#c4b5fd', border: 'rgba(139, 92, 246, 0.2)' }; // Viola
+    
+    // Mounjaro / GLP-1 - Smeraldo (Salute metabolica)
+    if (name.includes('mounjaro') || name.includes('ozempic') || name.includes('wegovy') || name.includes('trulicity')) {
+      return { bg: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', border: 'rgba(16, 185, 129, 0.25)' };
     }
-    return { bg: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: 'rgba(99, 102, 241, 0.2)' }; // Indaco (Default)
+    
+    // Tovastibe / Statine / Colesterolo - Ciano/Azzurro
+    if (name.includes('tovastibe') || name.includes('tavastibe') || name.includes('atorvast') || name.includes('ezetim')) {
+       return { bg: 'rgba(6, 182, 212, 0.15)', color: '#67e8f9', border: 'rgba(6, 182, 212, 0.25)' };
+    }
+
+    // Metformina e simili - Viola
+    if (name.includes('metformin') || name.includes('janumet')) {
+      return { bg: 'rgba(139, 92, 246, 0.12)', color: '#c4b5fd', border: 'rgba(139, 92, 246, 0.2)' };
+    }
+    
+    // Default - Indaco
+    return { bg: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: 'rgba(99, 102, 241, 0.2)' };
   }
 
   getFingerprint(e) {
