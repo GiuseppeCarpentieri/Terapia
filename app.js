@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.09.114';
+const APP_VERSION = 'v2026.04.10.001';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -28,6 +28,7 @@ class TerapiaApp {
     this._migrationChecked = false;
     this.deferredInstallPrompt = null;
     this.isPwaInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    this.logLimit = 50; // Inizialmente mostra solo 50 elementi
 
     this.elements = {
       datePickerList: document.getElementById('datePickerList'),
@@ -160,6 +161,12 @@ class TerapiaApp {
 
   // ===== AUTH =====
   initFirebase() {
+    // Abilita la persistenza offline per caricamenti istantanei
+    db.enablePersistence().catch(err => {
+      if (err.code == 'failed-precondition') console.warn('Persistenza fallita: più schede aperte');
+      else if (err.code == 'unimplemented') console.warn('Persistenza fallita: browser non supportato');
+    });
+
     auth.onAuthStateChanged(user => {
       if (user) {
         this.currentUserId = user.uid;
@@ -324,6 +331,7 @@ class TerapiaApp {
         btn.classList.remove('secondary');
         btn.classList.add('primary');
         this.currentFilter = btn.dataset.filter;
+        this.logLimit = 50; // Reset limite quando si cambia filtro
         if (this.currentFilter === 'meds') {
           if (this.elements.medFilterSelect) {
             this.elements.medFilterSelect.style.display = 'block';
@@ -501,12 +509,33 @@ class TerapiaApp {
     const dateSet = new Set();
     const today = new Date();
     today.setHours(0,0,0,0);
-    for(let i = -7; i <= 7; i++) {
+    
+    // Periodo di interesse: 15 giorni fa -> 7 giorni dopo
+    const minDay = new Date(today);
+    minDay.setDate(minDay.getDate() - 15);
+    const maxDay = new Date(today);
+    maxDay.setDate(maxDay.getDate() + 7);
+
+    for(let i = -15; i <= 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       dateSet.add(d.toDateString());
     }
-    this.entries.forEach(e => { dateSet.add(new Date(e.timestamp).toDateString()); });
+    
+    // Aggiungi la data corrente se fuori range
+    dateSet.add(this.currentDate.toDateString());
+    
+    // Aggiungi date rilevanti recenti (ultimi 30 giorni) o selezionate
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    this.entries.forEach(e => { 
+      const et = new Date(e.timestamp);
+      if (et >= thirtyDaysAgo || et.toDateString() === this.currentDate.toDateString()) {
+        dateSet.add(et.toDateString()); 
+      }
+    });
+
     const sortedDates = Array.from(dateSet).map(ds => new Date(ds)).sort((a,b) => a - b);
     this.elements.datePickerList.innerHTML = '';
     sortedDates.forEach(date => {
@@ -580,6 +609,9 @@ class TerapiaApp {
     }
 
     filteredEntries.sort((a, b) => b.timestamp - a.timestamp);
+    const totalFiltered = filteredEntries.length;
+    const entriesToShow = filteredEntries.slice(0, this.logLimit);
+    
     this.elements.logTbody.innerHTML = '';
 
     if (filteredEntries.length === 0) {
@@ -588,7 +620,7 @@ class TerapiaApp {
     }
 
     let lastDateTag = "";
-    filteredEntries.forEach(entry => {
+    entriesToShow.forEach(entry => {
       const entryDate = new Date(entry.timestamp);
       const groupKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}-${String(entryDate.getDate()).padStart(2, '0')}`;
       const groupDayLabel = entryDate.toLocaleDateString('it-IT', { weekday: 'long' });
@@ -640,6 +672,23 @@ class TerapiaApp {
       `;
       this.elements.logTbody.appendChild(tr);
     });
+
+    // Bottone "Carica Altri" se ci sono più dati
+    if (totalFiltered > this.logLimit) {
+      const loadMoreTr = document.createElement('tr');
+      loadMoreTr.innerHTML = `
+        <td colspan="6" style="text-align: center; padding: 1.5rem;">
+          <button id="loadMoreBtn" class="secondary" style="width: 100%; max-width: 200px; margin: 0 auto; font-size: 0.85rem;">
+            Carica altri (${totalFiltered - this.logLimit} rimanenti)
+          </button>
+        </td>
+      `;
+      this.elements.logTbody.appendChild(loadMoreTr);
+      document.getElementById('loadMoreBtn').onclick = () => {
+        this.logLimit += 100;
+        this.renderLog();
+      };
+    }
 
     lucide.createIcons();
     this.setupDragAndDrop();
