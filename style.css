@@ -433,14 +433,21 @@ header .header-controls {
 }
 
 .custom-date-input {
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 600;
-  padding: 0.2rem;
+  padding: 0.3rem 0.6rem;
   width: auto;
   cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.custom-date-input:focus {
+  border-color: var(--accent-primary);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .custom-date-input::-webkit-calendar-picker-indicator {
@@ -1052,6 +1059,58 @@ input[type="number"] {
   #syncRepoBtn:not(:has(i)) {
     font-size: 0;
   }
+
+  /* Date range filter adjustments */
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 1.25rem !important;
+  }
+
+  .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .date-range-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 16px;
+  }
+
+  .range-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.15rem;
+  }
+
+  .range-label {
+    font-size: 0.6rem;
+    margin-left: 0.2rem;
+    opacity: 0.8;
+  }
+
+  .custom-date-input {
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0.2rem;
+    font-size: 0.85rem;
+  }
+
+  #applyRangeBtn {
+    height: 100%;
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    width: 42px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1099,9 +1158,11 @@ input[type="number"] {
     height: 20px !important;
   }
 
-  header .actions button#addEntryBtn {
-    flex: 1 1 0;
+  #applyRangeBtn i {
+    width: 20px !important;
+    height: 20px !important;
   }
+}
 
   .dashboard-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1141,9 +1202,8 @@ input[type="number"] {
   }
 
   .chart-filter-btns {
-    flex-direction: row;
-    flex-wrap: nowrap;
     width: 100%;
+    margin-top: 0.25rem;
   }
 
   .entry-type-grid,

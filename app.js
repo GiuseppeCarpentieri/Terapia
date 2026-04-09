@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.05.113';
+const APP_VERSION = 'v2026.04.09.114';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
