@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.10.001';
+const APP_VERSION = 'v2026.04.10.002';
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -905,12 +905,15 @@ class TerapiaApp {
             type: 'linear', min: xMin, max: xMax,
             grid: { color: 'rgba(255,255,255,0.06)' },
             ticks: {
-              color: '#94a3b8', maxRotation: 0, minRotation: 0,
-              maxTicksLimit: this.chartScope === 'day' ? 12 : 8,
+              color: '#94a3b8',
+              maxRotation: 90,
+              minRotation: 90,
+              autoSkip: true,
+              maxTicksLimit: this.chartScope === 'day' ? 12 : 20,
               callback: (value) => {
                 const d = new Date(value);
                 if (this.chartScope === 'day') return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
               }
             }
           }
