@@ -130,9 +130,24 @@
           <h2 id="chartTitle">Andamento Glicemico</h2>
           <p id="chartSub" class="text-secondary">Storico completo dei dati</p>
         </div>
-        <div class="filter-btns chart-filter-btns" id="chartScopeBtns">
-          <button class="secondary btn-sm" data-scope="day">Oggi</button>
-          <button class="primary btn-sm" data-scope="all">Sempre</button>
+        <div class="filter-controls">
+          <div class="date-range-container glass-panel">
+            <div class="range-group">
+              <label for="chartStartDate" class="range-label">Dal</label>
+              <input type="date" id="chartStartDate" class="custom-date-input">
+            </div>
+            <div class="range-group">
+              <label for="chartEndDate" class="range-label">Al</label>
+              <input type="date" id="chartEndDate" class="custom-date-input">
+            </div>
+            <button id="applyRangeBtn" class="secondary btn-sm" title="Applica intervallo date">
+              <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
+          <div class="filter-btns chart-filter-btns" id="chartScopeBtns">
+            <button class="secondary btn-sm" data-scope="day">Oggi</button>
+            <button class="primary btn-sm" data-scope="all">Sempre</button>
+          </div>
         </div>
       </div>
       <div style="height: 200px; width: 100%;">

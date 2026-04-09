@@ -71,7 +71,10 @@ class TerapiaApp {
       entryYear: document.getElementById('entryYear'),
       entryHH: document.getElementById('entryHH'),
       entryMM: document.getElementById('entryMM'),
-      entryNote: document.getElementById('entryNote')
+      entryNote: document.getElementById('entryNote'),
+      chartStartDate: document.getElementById('chartStartDate'),
+      chartEndDate: document.getElementById('chartEndDate'),
+      applyRangeBtn: document.getElementById('applyRangeBtn')
     };
 
     this.viewAll = true;
@@ -82,6 +85,17 @@ class TerapiaApp {
     this.setupVersionToggle();
     this.setupPwaInstall();
     this.initFirebase();
+    this.initDateRangeFields();
+  }
+
+  initDateRangeFields() {
+    if (this.elements.chartStartDate && this.elements.chartEndDate) {
+      const today = new Date();
+      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      this.elements.chartStartDate.value = firstOfMonth.toISOString().split('T')[0];
+      this.elements.chartEndDate.value = today.toISOString().split('T')[0];
+    }
   }
 
   renderAppVersion() {
@@ -391,6 +405,26 @@ class TerapiaApp {
       e.preventDefault();
       this.downloadHistoryXLSX();
     };
+
+    if (this.elements.applyRangeBtn) {
+      this.elements.applyRangeBtn.onclick = () => {
+        const start = this.elements.chartStartDate.value;
+        const end = this.elements.chartEndDate.value;
+        if (!start || !end) {
+          this.showToast('Seleziona entrambe le date', 'error');
+          return;
+        }
+        this.chartScope = 'custom';
+        this.viewAll = true; // Use global entries but filtered by date in the UI methods
+        
+        this.elements.chartScopeBtns.forEach(b => b.classList.remove('primary'));
+        this.elements.chartScopeBtns.forEach(b => b.classList.add('secondary'));
+        
+        this.elements.chartSub.innerText = `Dati dal ${new Date(start).toLocaleDateString('it-IT')} al ${new Date(end).toLocaleDateString('it-IT')}`;
+        this.updateDashboard();
+        this.renderLog();
+      };
+    }
   }
 
   async installPwa() {
@@ -513,9 +547,23 @@ class TerapiaApp {
   }
 
   renderLog() {
-    let filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
+    let filteredEntries;
+    if (this.chartScope === 'custom' && this.elements.chartStartDate.value && this.elements.chartEndDate.value) {
+      const startObj = new Date(this.elements.chartStartDate.value);
+      startObj.setHours(0,0,0,0);
+      const endObj = new Date(this.elements.chartEndDate.value);
+      endObj.setHours(23,59,59,999);
+      filteredEntries = this.entries.filter(e => e.timestamp >= startObj.getTime() && e.timestamp <= endObj.getTime());
+    } else {
+      filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
+    }
+    
     let titleText = "Storico Completo";
-    if (this.viewAll && this.entries.length > 0) {
+    if (this.chartScope === 'custom') {
+      const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+      const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+      titleText = `Dati dal ${startStr} al ${endStr}`;
+    } else if (this.viewAll && this.entries.length > 0) {
       const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
       const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
       titleText = `Storico Completo dal ${startDate}`;
@@ -719,9 +767,24 @@ class TerapiaApp {
       btn.classList.toggle('secondary', !isActive);
     });
 
-    const chartData = this.chartScope === 'all' ?
-      this.entries.filter(e => e.type === 'glucose') :
-      dailyEntries.filter(e => e.type === 'glucose');
+    if (this.elements.applyRangeBtn) {
+      const isCustom = this.chartScope === 'custom';
+      this.elements.applyRangeBtn.classList.toggle('primary', isCustom);
+      this.elements.applyRangeBtn.classList.toggle('secondary', !isCustom);
+    }
+
+    let chartData;
+    if (this.chartScope === 'all') {
+      chartData = this.entries.filter(e => e.type === 'glucose');
+    } else if (this.chartScope === 'custom') {
+      const startObj = new Date(this.elements.chartStartDate.value);
+      startObj.setHours(0,0,0,0);
+      const endObj = new Date(this.elements.chartEndDate.value);
+      endObj.setHours(23,59,59,999);
+      chartData = this.entries.filter(e => e.type === 'glucose' && e.timestamp >= startObj.getTime() && e.timestamp <= endObj.getTime());
+    } else {
+      chartData = dailyEntries.filter(e => e.type === 'glucose');
+    }
     this.renderChart(chartData);
   }
 
@@ -738,6 +801,13 @@ class TerapiaApp {
       const d = new Date(this.currentDate);
       xMin = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).getTime();
       xMax = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0, 0, 0).getTime();
+    } else if (this.chartScope === 'custom') {
+      const startObj = new Date(this.elements.chartStartDate.value);
+      startObj.setHours(0,0,0,0);
+      const endObj = new Date(this.elements.chartEndDate.value);
+      endObj.setHours(23,59,59,999);
+      xMin = startObj.getTime();
+      xMax = endObj.getTime();
     } else if (data.length > 0) {
       const firstDate = new Date(Math.min(...data.map(e => e.timestamp)));
       const lastDate = new Date(Math.max(...data.map(e => e.timestamp)));
