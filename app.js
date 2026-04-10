@@ -875,9 +875,9 @@ class TerapiaApp {
       data: {
         datasets: [{
           label: 'Glicemia (mg/dL)', data: chartPoints,
-          borderColor: '#10b981', backgroundColor: gradient, borderWidth: 3, tension: 0, fill: true,
-          pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 2,
-          pointRadius: this.chartScope === 'all' ? 2 : 6, pointHoverRadius: this.chartScope === 'all' ? 4 : 8,
+          borderColor: '#10b981', backgroundColor: gradient, borderWidth: 1.5, tension: 0, fill: true,
+          pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 1,
+          pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
           pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2
         }]
       },
@@ -900,10 +900,10 @@ class TerapiaApp {
           }
         },
         scales: {
-          y: { min: 60, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { weight: '600' } } },
+          y: { min: 60, grid: { color: 'rgba(255,255,255,0.05)', lineWidth: 0.3 }, ticks: { color: '#94a3b8', font: { weight: '600' } } },
           x: {
             type: 'linear', min: xMin, max: xMax,
-            grid: { color: 'rgba(255,255,255,0.06)' },
+            grid: { color: 'rgba(255,255,255,0.06)', lineWidth: 0.3 },
             ticks: {
               color: '#94a3b8',
               maxRotation: 90,
