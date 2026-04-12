@@ -143,10 +143,10 @@
             <button id="applyRangeBtn" class="secondary btn-sm" title="Applica intervallo date">
               <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
             </button>
-          </div>
-          <div class="filter-btns chart-filter-btns" id="chartScopeBtns">
-            <button class="secondary btn-sm" data-scope="day">Oggi</button>
-            <button class="primary btn-sm" data-scope="all">Sempre</button>
+            <div class="filter-btns chart-filter-btns" id="chartScopeBtns" style="margin-left: 0.5rem; gap: 0.3rem;">
+              <button class="secondary btn-mini" data-scope="day">Oggi</button>
+              <button class="primary btn-mini" data-scope="all">Sempre</button>
+            </div>
           </div>
         </div>
       </div>
@@ -180,13 +180,13 @@
       <div class="log-table-container">
         <table>
           <thead>
-            <tr>
-              <th style="width: 100px; text-align: center;">Data</th>
-              <th style="width: 80px; text-align: center;">Orario</th>
-              <th style="width: 100px;">Tipo</th>
-              <th>Dose</th>
+            <tr class="log-header-row">
+              <th style="width: 140px;">Data</th>
+              <th style="width: 80px;">Ora</th>
+              <th style="width: 120px;">Tipo</th>
+              <th style="width: 30%;">Dose / Valore</th>
               <th>Note</th>
-              <th style="width: 80px;">Azioni</th>
+              <th style="width: 100px; text-align: right;">Azioni</th>
             </tr>
           </thead>
           <tbody id="log-tbody">

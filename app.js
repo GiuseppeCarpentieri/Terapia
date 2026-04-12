@@ -433,6 +433,9 @@ class TerapiaApp {
         this.renderLog();
       };
     }
+
+    // New resize listener for sticky headers
+    window.addEventListener('resize', () => this.syncStickyHeaders());
   }
 
   async installPwa() {
@@ -589,15 +592,15 @@ class TerapiaApp {
     
     let titleText = "Storico Completo";
     if (this.chartScope === 'custom') {
-      const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
-      const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
+      const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
       titleText = `Dati dal ${startStr} al ${endStr}`;
     } else if (this.viewAll && this.entries.length > 0) {
       const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
       const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
       titleText = `Storico Completo dal ${startDate}`;
     }
-    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}`;
+    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
 
     if (this.currentFilter === 'glucose') {
       filteredEntries = filteredEntries.filter(e => e.type === 'glucose');
@@ -647,11 +650,11 @@ class TerapiaApp {
       const isGlucose = entry.type === 'glucose';
       const medStyle = !isGlucose ? this.getMedBadgeStyle(entry.medName) : null;
       tr.innerHTML = `
-        <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })}</span></td>
+        <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></td>
         <td data-label="Orario"><span class="time-inline-value">${time}</span></td>
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
-          <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;">
+          <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px;">
             <span class="dose-value" style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span>
             <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : '')}</span>
             ${!isGlucose ? `<span class="badge" style="background: ${medStyle.bg}; color: ${medStyle.color}; border: 1px solid ${medStyle.border}; font-size: 0.725rem; padding: 0.15rem 0.6rem;">${entry.medName}</span>` : ''}
@@ -698,6 +701,26 @@ class TerapiaApp {
     });
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = () => this.deleteEntry(btn.dataset.id);
+    });
+    
+    // Recalibrate sticky headers after rendering
+    this.syncStickyHeaders();
+  }
+
+  syncStickyHeaders() {
+    const mainHeader = document.querySelector('header');
+    const logHeader = document.querySelector('.log-header');
+    const thead = document.querySelector('.log-table-container thead');
+    
+    if (!mainHeader || !logHeader || !thead) return;
+    
+    // Use requestAnimationFrame to ensure we measure after layout
+    requestAnimationFrame(() => {
+      const headerHeight = mainHeader.offsetHeight;
+      logHeader.style.setProperty('top', `${headerHeight}px`, 'important');
+      
+      const logHeaderHeight = logHeader.offsetHeight;
+      thead.style.setProperty('top', `${headerHeight + logHeaderHeight - 1}px`, 'important');
     });
   }
 
@@ -894,7 +917,7 @@ class TerapiaApp {
               label: (context) => `Glicemia: ${context.parsed.y} mg/dL`,
               title: (context) => {
                 const d = new Date(context[0].parsed.x);
-                return d.toLocaleDateString('it-IT') + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
               }
             }
           }
