@@ -651,7 +651,7 @@ class TerapiaApp {
       const medStyle = !isGlucose ? this.getMedBadgeStyle(entry.medName) : null;
       tr.innerHTML = `
         <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></td>
-        <td data-label="Orario"><span class="time-inline-value">${time}</span></td>
+        <td data-label="Ora"><span class="time-inline-value">${time}</span></td>
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
           <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px;">
