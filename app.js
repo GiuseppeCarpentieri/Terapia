@@ -679,9 +679,10 @@ class TerapiaApp {
     // Bottone "Carica Altri" se ci sono più dati
     if (totalFiltered > this.logLimit) {
       const loadMoreTr = document.createElement('tr');
+      loadMoreTr.className = 'load-more-row';
       loadMoreTr.innerHTML = `
-        <td colspan="6" style="text-align: center; padding: 1.5rem;">
-          <button id="loadMoreBtn" class="secondary" style="width: 100%; max-width: 200px; margin: 0 auto; font-size: 0.85rem;">
+        <td colspan="6" class="load-more-cell">
+          <button id="loadMoreBtn" class="secondary">
             Carica altri (${totalFiltered - this.logLimit} rimanenti)
           </button>
         </td>
