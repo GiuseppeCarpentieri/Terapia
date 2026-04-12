@@ -1330,6 +1330,16 @@ input[type="number"] {
     grid-column: 1 / -1;
   }
 
+  tr td[data-label="Tipo"] {
+    justify-content: center !important;
+    padding: 0.25rem !important;
+    min-height: auto !important;
+  }
+
+  tr td[data-label="Tipo"]::before {
+    display: none !important; /* Remove label for "Tipo" to allow badge centering */
+  }
+
   .log-date-divider {
     display: block;
     border: none;
