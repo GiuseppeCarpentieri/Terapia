@@ -793,10 +793,11 @@ input[type="number"] {
   right: calc(100% + 0.6rem);
   left: auto;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 9999px;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  border-radius: 18px;
   border: 1px solid var(--glass-border);
   background: rgba(15, 23, 42, 0.92);
   backdrop-filter: blur(12px);
@@ -810,6 +811,13 @@ input[type="number"] {
   transform: translateY(-50%) translateX(10px);
   pointer-events: none;
   transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.app-version-info {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
 }
 
 .app-version-menu.is-open .app-version-panel {
@@ -1084,7 +1092,8 @@ input[type="number"] {
     right: 0;
     left: auto;
     font-size: 0.76rem;
-    padding: 0.4rem 0.7rem;
+    padding: 0.75rem;
+    border-radius: 18px;
     transform: translateY(0.3rem);
   }
 

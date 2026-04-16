@@ -1,4 +1,4 @@
-const CACHE_NAME = 'terapia-pwa-v1001';
+const CACHE_NAME = 'terapia-pwa-v1002';
 const APP_ASSETS = [
   './',
   './index.html',
@@ -25,7 +25,7 @@ async function networkFirst(request) {
   try {
     const networkResponse = await fetch(request);
 
-    if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+    if (networkResponse && networkResponse.ok) {
       cache.put(request, networkResponse.clone());
     }
 
@@ -71,12 +71,28 @@ self.addEventListener('fetch', (event) => {
 
   const requestUrl = new URL(event.request.url);
   const isSameOrigin = requestUrl.origin === self.location.origin;
-  const isAppShellRequest = event.request.mode === 'navigate' || APP_SHELL_PATHS.has(requestUrl.pathname);
+  const isNavigate = event.request.mode === 'navigate';
+  const isAppShell = APP_SHELL_PATHS.has(requestUrl.pathname);
 
-  if (isSameOrigin || isAppShellRequest) {
+  // Cache solo asset interni o navigazione
+  if (isSameOrigin && (isNavigate || isAppShell)) {
     event.respondWith(networkFirst(event.request));
-    return;
   }
+  // Tutte le altre richieste (Firebase, Font, CDN) vanno dirette in rete 
+  // e NON vengono salvate dal service worker (hanno già la loro persistenza)
+});
 
-  event.respondWith(networkFirst(event.request));
+// Listener per messaggi dall'app (es. pulizia forzata)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    event.waitUntil(
+      caches.keys().then((keys) => 
+        Promise.all(keys.map((key) => caches.delete(key)))
+      )
+    );
+  }
 });

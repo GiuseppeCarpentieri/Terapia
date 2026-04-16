@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.16.002';
+const APP_VERSION = 'v2026.04.17.001';
 
 // ===== COSTANTI DI RIFERIMENTO =====
 const GLUCOSE_MIN = 70;
@@ -91,8 +91,40 @@ class TerapiaApp {
     this.renderAppVersion();
     this.setupVersionToggle();
     this.setupPwaInstall();
+    this.setupForceReset(); // New
     this.initFirebase();
     this.initDateRangeFields();
+  }
+
+  setupForceReset() {
+    const btn = document.getElementById('forceResetApp');
+    if (!btn) return;
+
+    btn.onclick = async () => {
+      if (confirm('Vuoi davvero resettare la cache? L\'app verrà ricaricata. I tuoi dati su Firebase NON verranno toccati.')) {
+        // 1. Unregister Service Workers
+        if ('serviceWorker' in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          for (let reg of regs) {
+            await reg.unregister();
+          }
+        }
+        
+        // 2. Clear Caches
+        if (window.caches) {
+          const keys = await caches.keys();
+          for (let key of keys) {
+            await caches.delete(key);
+          }
+        }
+
+        // 3. Clear LocalStorage related to app (optional)
+        // localStorage.clear(); // Use with caution, maybe just clear specific ones
+
+        alert('App resettata. L\'app verrà chiusa/ricaricata.');
+        window.location.reload();
+      }
+    };
   }
 
   initDateRangeFields() {
@@ -167,8 +199,8 @@ class TerapiaApp {
 
   // ===== AUTH =====
   initFirebase() {
-    // Abilita la persistenza offline per caricamenti istantanei
-    db.enablePersistence().catch(err => {
+    // Abilita la persistenza offline con parametri che evitano blocchi tra schede
+    db.enablePersistence({ synchronizeTabs: true }).catch(err => {
       if (err.code == 'failed-precondition') console.warn('Persistenza fallita: più schede aperte');
       else if (err.code == 'unimplemented') console.warn('Persistenza fallita: browser non supportato');
     });
