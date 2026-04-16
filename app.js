@@ -388,10 +388,13 @@ class TerapiaApp {
       }
     };
 
-    if (this.elements.unitInput) {
-      this.elements.unitInput.onfocus = () => { try { this.elements.unitInput.showPicker(); } catch(e) {} };
-      this.elements.unitInput.onclick = () => { try { this.elements.unitInput.showPicker(); } catch(e) {} };
-    }
+    // Gestione apertura automatica datalist (Suggerimenti) al primo click/focus
+    [this.elements.unitInput, this.elements.medName].forEach(el => {
+      if (el) {
+        el.addEventListener('mousedown', () => { try { el.showPicker(); } catch(e) {} });
+        el.addEventListener('focus', () => { try { el.showPicker(); } catch(e) {} });
+      }
+    });
 
     // Sync button = cloud status / sign out
     this.elements.syncRepoBtn.onclick = () => {
@@ -436,6 +439,24 @@ class TerapiaApp {
 
     // New resize listener for sticky headers
     window.addEventListener('resize', () => this.syncStickyHeaders());
+
+    // Limita input numerici della data e ora
+    [this.elements.entryDay, this.elements.entryMonth, this.elements.entryHH, this.elements.entryMM].forEach(el => {
+      if (el) {
+        el.addEventListener('input', (e) => {
+          if (e.target.value.length > 2) {
+            e.target.value = e.target.value.slice(0, 2);
+          }
+        });
+      }
+    });
+    if (this.elements.entryYear) {
+      this.elements.entryYear.addEventListener('input', (e) => {
+        if (e.target.value.length > 4) {
+          e.target.value = e.target.value.slice(0, 4);
+        }
+      });
+    }
   }
 
   async installPwa() {
