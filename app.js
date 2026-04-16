@@ -391,8 +391,18 @@ class TerapiaApp {
     // Gestione apertura automatica datalist (Suggerimenti) al primo click/focus
     [this.elements.unitInput, this.elements.medName].forEach(el => {
       if (el) {
-        el.addEventListener('mousedown', () => { try { el.showPicker(); } catch(e) {} });
-        el.addEventListener('focus', () => { try { el.showPicker(); } catch(e) {} });
+        let lastAutoOpen = 0;
+        const autoOpen = () => {
+          const now = Date.now();
+          // Evita di chiamare showPicker troppo frequentemente (es. click dopo focus)
+          if (now - lastAutoOpen < 300) return;
+          lastAutoOpen = now;
+          if (typeof el.showPicker === 'function') {
+            try { el.showPicker(); } catch(e) {}
+          }
+        };
+        el.addEventListener('click', autoOpen);
+        el.addEventListener('focus', autoOpen);
       }
     });
 

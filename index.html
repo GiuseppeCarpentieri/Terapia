@@ -227,7 +227,7 @@
           <label id="value-label">Valore (Glicemia)</label>
           <div class="value-input-row">
             <input type="number" id="entryValue" placeholder="es. 110" step="any" required style="flex: 1; text-align: left;">
-            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unit&agrave;" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
+            <input type="text" id="unitInput" class="secondary" list="unitsList" placeholder="Unit&agrave;" autocomplete="off" style="flex: 2; text-align: left; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-card); color: var(--text-primary); font-weight: 600;">
             <datalist id="unitsList">
               <option value="mg/dL"></option>
               <option value="ml"></option>
@@ -239,7 +239,7 @@
         
         <div class="form-group" id="med-name-group" style="display: none;">
           <label>Nome Farmaco / Dose</label>
-          <input type="text" id="medName" placeholder="es. Metformina 500mg" list="medsList">
+          <input type="text" id="medName" placeholder="es. Metformina 500mg" list="medsList" autocomplete="off">
           <datalist id="medsList"></datalist>
         </div>
         
