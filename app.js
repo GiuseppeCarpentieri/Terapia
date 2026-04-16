@@ -3,7 +3,13 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.12.001';
+const APP_VERSION = 'v2026.04.16.002';
+
+// ===== COSTANTI DI RIFERIMENTO =====
+const GLUCOSE_MIN = 70;
+const GLUCOSE_MAX = 180;
+const GLUCOSE_AVG_LIMIT = 140;
+
 
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -833,15 +839,38 @@ class TerapiaApp {
     this.elements.entryModal.style.display = 'flex';
   }
 
+  getFilteredEntries() {
+    if (this.chartScope === 'all') {
+      return this.entries;
+    } else if (this.chartScope === 'day') {
+      return this.getEntriesForDate(this.currentDate);
+    } else if (this.chartScope === 'custom') {
+      const startStr = this.elements.chartStartDate.value;
+      const endStr = this.elements.chartEndDate.value;
+      if (!startStr || !endStr) return this.entries;
+      
+      const start = new Date(startStr);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(endStr);
+      end.setHours(23, 59, 59, 999);
+      
+      return this.entries.filter(e => {
+        const d = new Date(e.timestamp);
+        return d >= start && d <= end;
+      });
+    }
+    return this.entries;
+  }
+
   updateDashboard() {
-    const dataSource = this.viewAll ? this.entries : this.getEntriesForDate(this.currentDate);
+    const dataSource = this.getFilteredEntries();
     const glucoseEntries = dataSource.filter(e => e.type === 'glucose');
     const medEntries = dataSource.filter(e => e.type === 'med');
 
     if (glucoseEntries.length > 0) {
       const avg = Math.round(glucoseEntries.reduce((acc, curr) => acc + parseFloat(curr.value || 0), 0) / glucoseEntries.length);
       this.elements.avgGlucose.innerText = avg;
-      this.elements.avgGlucose.style.color = avg > 140 ? '#f43f5e' : (avg < 70 ? '#f59e0b' : '#10b981');
+      this.elements.avgGlucose.style.color = avg > GLUCOSE_AVG_LIMIT ? '#f43f5e' : (avg < GLUCOSE_MIN ? '#f59e0b' : '#10b981');
     } else {
       this.elements.avgGlucose.innerText = '--';
       this.elements.avgGlucose.style.color = 'var(--text-secondary)';
@@ -849,14 +878,13 @@ class TerapiaApp {
 
     this.elements.medsCount.innerText = medEntries.length;
 
-    const dailyEntries = this.getEntriesForDate(this.currentDate);
-    if (dailyEntries.length === 0) {
+    // Stato Glicemico basato sul range selezionato
+    if (glucoseEntries.length === 0) {
       this.elements.statusIndicator.innerText = 'Dati Assenti';
       this.elements.statusIndicator.style.color = 'var(--text-secondary)';
     } else {
-      const dailyGlucose = dailyEntries.filter(e => e.type === 'glucose');
-      const dailyAvg = dailyGlucose.length > 0 ? Math.round(dailyGlucose.reduce((acc, curr) => acc + parseFloat(curr.value || 0), 0) / dailyGlucose.length) : null;
-      if (dailyAvg && (dailyAvg > 180 || dailyAvg < 70)) {
+      const filteredAvg = Math.round(glucoseEntries.reduce((acc, curr) => acc + parseFloat(curr.value || 0), 0) / glucoseEntries.length);
+      if (filteredAvg > GLUCOSE_MAX || filteredAvg < GLUCOSE_MIN) {
         this.elements.statusIndicator.innerText = 'Attenzione';
         this.elements.statusIndicator.style.color = '#f43f5e';
       } else {
@@ -877,50 +905,42 @@ class TerapiaApp {
       this.elements.applyRangeBtn.classList.toggle('secondary', !isCustom);
     }
 
-    let chartData;
-    if (this.chartScope === 'all') {
-      chartData = this.entries.filter(e => e.type === 'glucose');
-    } else if (this.chartScope === 'custom') {
-      const startObj = new Date(this.elements.chartStartDate.value);
-      startObj.setHours(0,0,0,0);
-      const endObj = new Date(this.elements.chartEndDate.value);
-      endObj.setHours(23,59,59,999);
-      chartData = this.entries.filter(e => e.type === 'glucose' && e.timestamp >= startObj.getTime() && e.timestamp <= endObj.getTime());
-    } else {
-      chartData = dailyEntries.filter(e => e.type === 'glucose');
-    }
-    this.renderChart(chartData);
+    this.renderChart();
   }
 
-  renderChart(glucoseEntries) {
-    if (!this.elements.glucoseChartCanvas) return;
-    const ctx = this.elements.glucoseChartCanvas.getContext('2d');
-    const data = [...glucoseEntries].sort((a, b) => a.timestamp - b.timestamp);
-    if (this.elements.glucoseChart) { this.elements.glucoseChart.destroy(); }
-    if (data.length === 0 && this.chartScope !== 'day') return;
+  renderChart() {
+    const canvas = this.elements.glucoseChartCanvas;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const chartPoints = data.map(e => ({ x: e.timestamp, y: parseFloat(e.value) }));
+    if (this.elements.glucoseChart) {
+      this.elements.glucoseChart.destroy();
+    }
+
+    const data = this.getFilteredEntries();
+    const chartPoints = data
+      .filter(e => e.type === 'glucose')
+      .map(e => ({ x: e.timestamp, y: parseFloat(e.value) || 0 }))
+      .sort((a, b) => a.x - b.x);
+
     let xMin, xMax;
     if (this.chartScope === 'day') {
       const d = new Date(this.currentDate);
       xMin = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).getTime();
       xMax = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0, 0, 0).getTime();
     } else if (this.chartScope === 'custom') {
-      const startObj = new Date(this.elements.chartStartDate.value);
-      startObj.setHours(0,0,0,0);
-      const endObj = new Date(this.elements.chartEndDate.value);
-      endObj.setHours(23,59,59,999);
-      xMin = startObj.getTime();
-      xMax = endObj.getTime();
-    } else if (data.length > 0) {
-      const firstDate = new Date(Math.min(...data.map(e => e.timestamp)));
-      const lastDate = new Date(Math.max(...data.map(e => e.timestamp)));
-      xMin = new Date(firstDate.getFullYear(), firstDate.getMonth(), firstDate.getDate(), 0, 0, 0).getTime();
-      xMax = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate() + 1, 0, 0, 0).getTime();
+      xMin = new Date(this.elements.chartStartDate.value).setHours(0, 0, 0, 0);
+      xMax = new Date(this.elements.chartEndDate.value).setHours(23, 59, 59, 999);
+    } else if (chartPoints.length > 0) {
+      xMin = Math.min(...chartPoints.map(p => p.x));
+      xMax = Math.max(...chartPoints.map(p => p.x));
     } else {
       xMin = Date.now() - 3600000;
       xMax = Date.now() + 3600000;
     }
+    const yMaxVal = Math.max(200, ...(chartPoints.length > 0 ? chartPoints.map(p => p.y) : [0])) + 20;
+
     const gradient = ctx.createLinearGradient(0, 0, 0, 300);
     gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
     gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
@@ -928,13 +948,54 @@ class TerapiaApp {
     this.elements.glucoseChart = new Chart(ctx, {
       type: 'line',
       data: {
-        datasets: [{
-          label: 'Glicemia (mg/dL)', data: chartPoints,
-          borderColor: '#10b981', backgroundColor: gradient, borderWidth: 1.5, tension: 0, fill: true,
-          pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 1,
-          pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
-          pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2
-        }]
+        datasets: [
+          {
+            label: 'Base',
+            data: [{ x: xMin, y: 0 }, { x: xMax, y: 0 }],
+            borderColor: 'transparent', pointRadius: 0, fill: false, tension: 0, z: -2
+          },
+          {
+            label: 'Fascia Bassa',
+            data: [{ x: xMin, y: GLUCOSE_MIN }, { x: xMax, y: GLUCOSE_MIN }],
+            borderColor: 'rgba(245, 158, 11, 0.2)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: 0, // Riempie verso la base (0)
+            backgroundColor: 'rgba(244, 63, 94, 0.04)',
+            tension: 0,
+            z: -1
+          },
+          {
+            label: 'Fascia Ideale',
+            data: [{ x: xMin, y: GLUCOSE_MAX }, { x: xMax, y: GLUCOSE_MAX }],
+            borderColor: 'rgba(16, 185, 129, 0.2)',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: 1, // Riempie verso il 70
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            tension: 0,
+            z: -1
+          },
+          {
+            label: 'Fascia Alta',
+            data: [{ x: xMin, y: yMaxVal }, { x: xMax, y: yMaxVal }],
+            borderColor: 'transparent',
+            borderWidth: 1,
+            pointRadius: 0,
+            fill: 2, // Riempie verso il 180
+            backgroundColor: 'rgba(244, 63, 94, 0.04)',
+            tension: 0,
+            z: -1
+          },
+          {
+            label: 'Glicemia (mg/dL)', data: chartPoints,
+            borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0, fill: false,
+            pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 1,
+            pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
+            pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+            z: 10
+          }
+        ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
@@ -955,7 +1016,46 @@ class TerapiaApp {
           }
         },
         scales: {
-          y: { min: 60, grid: { color: 'rgba(255,255,255,0.05)', lineWidth: 0.3 }, ticks: { color: '#94a3b8', font: { weight: '600' } } },
+          y: {
+            min: 0,
+            max: yMaxVal,
+            position: 'left',
+            grid: { color: 'rgba(255,255,255,0.05)', lineWidth: 0.3 },
+            ticks: {
+              stepSize: 10,
+              autoSkip: false,
+              color: '#94a3b8',
+              font: { weight: '400', size: 11 },
+              callback: (value) => {
+                const v = Math.round(value);
+                // Nasconde 70 e 180 da sinistra
+                if (v === GLUCOSE_MIN || v === GLUCOSE_MAX) return null;
+                if (v === 0 || v === 400 || v % 50 === 0) return v;
+                return null;
+              }
+            }
+          },
+          y1: {
+            min: 0,
+            max: yMaxVal,
+            position: 'right',
+            grid: { display: false },
+            ticks: {
+              stepSize: 10,
+              autoSkip: false,
+              align: 'center',
+              crossAlign: 'far',
+              padding: 0,
+              color: '#fff',
+              font: { weight: '500', size: 12 },
+              callback: (value) => {
+                const v = Math.round(value);
+                // Mostra SOLO 70 e 180 a destra
+                if (v === GLUCOSE_MIN || v === GLUCOSE_MAX) return v;
+                return null;
+              }
+            }
+          },
           x: {
             type: 'linear', min: xMin, max: xMax,
             grid: { color: 'rgba(255,255,255,0.06)', lineWidth: 0.3 },
