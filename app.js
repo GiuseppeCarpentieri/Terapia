@@ -1096,10 +1096,17 @@ class TerapiaApp {
               maxRotation: 90,
               minRotation: 90,
               autoSkip: true,
-              maxTicksLimit: this.chartScope === 'day' ? 12 : 20,
+              maxTicksLimit: this.chartScope === 'day' ? 25 : 20,
+              stepSize: this.chartScope === 'day' ? 3600000 : undefined,
               callback: (value) => {
                 const d = new Date(value);
-                if (this.chartScope === 'day') return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                if (this.chartScope === 'day') {
+                  // Mostriamo solo le ore piene per pulizia ed evitare sovrapposizioni
+                  if (d.getMinutes() === 0) {
+                    return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                  }
+                  return null;
+                }
                 return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
               }
             }
