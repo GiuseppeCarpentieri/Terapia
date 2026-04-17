@@ -8,7 +8,7 @@ const APP_VERSION = 'v2026.04.17.001';
 // ===== COSTANTI DI RIFERIMENTO =====
 const GLUCOSE_MIN = 70;
 const GLUCOSE_MAX = 180;
-const GLUCOSE_AVG_LIMIT = 140;
+
 
 
 // ===== FIREBASE =====
@@ -1032,7 +1032,7 @@ class TerapiaApp {
     if (glucoseEntries.length > 0) {
       const avg = Math.round(glucoseEntries.reduce((acc, curr) => acc + parseFloat(curr.value || 0), 0) / glucoseEntries.length);
       this.elements.avgGlucose.innerText = avg;
-      this.elements.avgGlucose.style.color = avg > GLUCOSE_AVG_LIMIT ? '#f43f5e' : (avg < GLUCOSE_MIN ? '#f59e0b' : '#10b981');
+      this.elements.avgGlucose.style.color = (avg > GLUCOSE_MAX || avg < GLUCOSE_MIN) ? '#f43f5e' : '#10b981';
     } else {
       this.elements.avgGlucose.innerText = '--';
       this.elements.avgGlucose.style.color = 'var(--text-secondary)';
