@@ -854,7 +854,7 @@ class TerapiaApp {
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
           <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px;">
-            <span class="dose-value" style="font-weight: 700; font-size: 1.1rem; ${isOutOfRange ? 'color: #f43f5e;' : ''}">${entry.value}</span>
+            <span class="dose-value" style="font-weight: 700; font-size: 1.1rem; ${isGlucose ? (isOutOfRange ? 'color: #f43f5e;' : 'color: #10b981;') : ''}">${entry.value}</span>
             <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : '')}</span>
             ${!isGlucose ? `<span class="badge" style="background: ${medStyle.bg}; color: ${medStyle.color}; border: 1px solid ${medStyle.border}; font-size: 0.725rem; padding: 0.15rem 0.6rem;">${entry.medName}</span>` : ''}
           </div>
