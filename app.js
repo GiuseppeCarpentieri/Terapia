@@ -717,6 +717,7 @@ class TerapiaApp {
       tr.classList.add('draggable-row');
       tr.dataset.id = entry.id;
       const isGlucose = entry.type === 'glucose';
+      const isOutOfRange = isGlucose && (parseFloat(entry.value) > GLUCOSE_MAX || parseFloat(entry.value) < GLUCOSE_MIN);
       const medStyle = !isGlucose ? this.getMedBadgeStyle(entry.medName) : null;
       tr.innerHTML = `
         <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></td>
@@ -724,7 +725,7 @@ class TerapiaApp {
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
           <div class="dose-inline" style="display: flex; align-items: baseline; gap: 6px;">
-            <span class="dose-value" style="font-weight: 700; font-size: 1.1rem;">${entry.value}</span>
+            <span class="dose-value" style="font-weight: 700; font-size: 1.1rem; ${isOutOfRange ? 'color: #f43f5e;' : ''}">${entry.value}</span>
             <span class="dose-unit" style="color: var(--text-secondary); font-size: 0.825rem;">${entry.unit || (isGlucose ? 'mg/dL' : '')}</span>
             ${!isGlucose ? `<span class="badge" style="background: ${medStyle.bg}; color: ${medStyle.color}; border: 1px solid ${medStyle.border}; font-size: 0.725rem; padding: 0.15rem 0.6rem;">${entry.medName}</span>` : ''}
           </div>
@@ -989,11 +990,11 @@ class TerapiaApp {
           {
             label: 'Fascia Bassa',
             data: [{ x: xMin, y: GLUCOSE_MIN }, { x: xMax, y: GLUCOSE_MIN }],
-            borderColor: 'rgba(245, 158, 11, 0.2)',
+            borderColor: 'rgba(244, 63, 94, 0.25)',
             borderWidth: 1,
             pointRadius: 0,
             fill: 0, // Riempie verso la base (0)
-            backgroundColor: 'rgba(244, 63, 94, 0.04)',
+            backgroundColor: 'rgba(244, 63, 94, 0.1)',
             tension: 0,
             z: -1
           },
@@ -1011,20 +1012,26 @@ class TerapiaApp {
           {
             label: 'Fascia Alta',
             data: [{ x: xMin, y: yMaxVal }, { x: xMax, y: yMaxVal }],
-            borderColor: 'transparent',
+            borderColor: 'rgba(244, 63, 94, 0.2)',
             borderWidth: 1,
             pointRadius: 0,
             fill: 2, // Riempie verso il 180
-            backgroundColor: 'rgba(244, 63, 94, 0.04)',
+            backgroundColor: 'rgba(244, 63, 94, 0.1)',
             tension: 0,
             z: -1
           },
           {
             label: 'Glicemia (mg/dL)', data: chartPoints,
             borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0, fill: false,
-            pointBackgroundColor: '#fff', pointBorderColor: '#10b981', pointBorderWidth: 1,
+            pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#fff', pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderWidth: 1,
             pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
-            pointHoverBackgroundColor: '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+            pointHoverBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+            segment: {
+              borderColor: (ctx) => {
+                const val = ctx.p1.parsed.y;
+                return (val > GLUCOSE_MAX || val < GLUCOSE_MIN) ? '#f43f5e' : '#10b981';
+              }
+            },
             z: 10
           }
         ]
