@@ -172,6 +172,10 @@ h1, h2, h3 {
   -webkit-text-fill-color: transparent;
 }
 
+.mobile-break {
+  display: none;
+}
+
 button {
   cursor: pointer;
   border: none;
@@ -908,7 +912,11 @@ input[type="number"] {
 
   header .brand h1 {
     font-size: 1.5rem;
-    line-height: 1;
+    line-height: 1.15;
+  }
+
+  .mobile-break {
+    display: block;
   }
 
   header .brand-tagline {
