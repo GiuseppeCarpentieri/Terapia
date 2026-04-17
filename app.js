@@ -1103,9 +1103,14 @@ class TerapiaApp {
     }
     const yMaxVal = Math.max(200, ...(chartPoints.length > 0 ? chartPoints.map(p => p.y) : [0])) + 20;
 
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-    gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+    const h = canvas.height;
+    const gradBassa = ctx.createLinearGradient(0, h, 0, h * 0.7);
+    gradBassa.addColorStop(0, 'rgba(244, 63, 94, 0.5)');
+    gradBassa.addColorStop(1, 'rgba(244, 63, 94, 0.2)');
+
+    const gradAlta = ctx.createLinearGradient(0, 0, 0, h * 0.3);
+    gradAlta.addColorStop(0, 'rgba(244, 63, 94, 0.5)');
+    gradAlta.addColorStop(1, 'rgba(244, 63, 94, 0.2)');
 
     this.elements.glucoseChart = new Chart(ctx, {
       type: 'line',
@@ -1123,7 +1128,7 @@ class TerapiaApp {
             borderWidth: 1,
             pointRadius: 0,
             fill: 0, // Riempie verso la base (0)
-            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+            backgroundColor: gradBassa,
             tension: 0,
             z: -1
           },
@@ -1134,7 +1139,7 @@ class TerapiaApp {
             borderWidth: 1,
             pointRadius: 0,
             fill: 1, // Riempie verso il 70
-            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
             tension: 0,
             z: -1
           },
@@ -1145,7 +1150,7 @@ class TerapiaApp {
             borderWidth: 1,
             pointRadius: 0,
             fill: 2, // Riempie verso il 180
-            backgroundColor: 'rgba(244, 63, 94, 0.1)',
+            backgroundColor: gradAlta,
             tension: 0,
             z: -1
           },
