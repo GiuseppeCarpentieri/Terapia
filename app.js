@@ -88,12 +88,77 @@ class TerapiaApp {
     this.chartScope = 'all';
     this.currentMedFilter = '';
     this.editingId = null;
+    this.appTitle = 'Terapia Diabete Tipo 2';
     this.renderAppVersion();
     this.setupVersionToggle();
     this.setupPwaInstall();
-    this.setupForceReset(); // New
+    this.setupForceReset();
+    this.setupRenameModal();
     this.initFirebase();
     this.initDateRangeFields();
+  }
+
+  setupRenameModal() {
+    const modal = document.getElementById('renameModal');
+    const form = document.getElementById('renameForm');
+    const editBtn = document.getElementById('editTitleBtn');
+    const titleDisplay = document.getElementById('mainAppTitle');
+
+    if (!modal || !form) return;
+
+    const openModal = () => {
+      document.getElementById('newAppTitle').value = this.appTitle;
+      modal.style.display = 'flex';
+    };
+
+    if (editBtn) editBtn.onclick = openModal;
+    if (titleDisplay) titleDisplay.onclick = openModal;
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const newTitle = document.getElementById('newAppTitle').value.trim();
+      if (newTitle) {
+        await this.saveAppTitle(newTitle);
+        modal.style.display = 'none';
+      }
+    };
+  }
+
+  async saveAppTitle(newTitle) {
+    this.appTitle = newTitle;
+    this.updateAppTitleUI();
+    if (this.currentUserId) {
+      try {
+        await db.collection('users').doc(this.currentUserId).set({
+          settings: { appTitle: newTitle }
+        }, { merge: true });
+        this.showToast('Nome terapia aggiornato');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
+  async loadAppTitle() {
+    if (!this.currentUserId) return;
+    try {
+      const doc = await db.collection('users').doc(this.currentUserId).get();
+      if (doc.exists && doc.data().settings && doc.data().settings.appTitle) {
+        this.appTitle = doc.data().settings.appTitle;
+        this.updateAppTitleUI();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  updateAppTitleUI() {
+    const titles = ['mainAppTitle', 'loadingAppTitle'];
+    titles.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerText = this.appTitle;
+    });
+    document.title = `${this.appTitle} | Monitoraggio`;
   }
 
   setupForceReset() {
@@ -209,18 +274,20 @@ class TerapiaApp {
       if (user) {
         this.currentUserId = user.uid;
         
-        // Show loading screen while we wait for data sync
+        // Show loading screen
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) {
           loadingOverlay.style.display = 'flex';
           loadingOverlay.style.opacity = '1';
         }
 
-        this.showApp(user);
-        this.setupEventListeners();
-        this.updateMedsDataList();
-        this.updateUnitsDataList('glucose');
-        this.setupFirestoreListener();
+        this.loadAppTitle().then(() => {
+          this.showApp(user);
+          this.setupEventListeners();
+          this.updateMedsDataList();
+          this.updateUnitsDataList('glucose');
+          this.setupFirestoreListener();
+        });
       } else {
         this.showLoginScreen();
       }
@@ -245,8 +312,67 @@ class TerapiaApp {
     
     document.getElementById('loginOverlay').style.display = 'flex';
     this.updateSyncRepoButton();
+    
+    // Auth Handlers
     const googleBtn = document.getElementById('googleSignInBtn');
     if (googleBtn) googleBtn.onclick = () => this.signInWithGoogle();
+
+    const emailSignInBtn = document.getElementById('emailSignInBtn');
+    if (emailSignInBtn) emailSignInBtn.onclick = () => this.signInWithEmail();
+
+    const emailSignUpBtn = document.getElementById('emailSignUpBtn');
+    if (emailSignUpBtn) emailSignUpBtn.onclick = () => this.signUpWithEmail();
+  }
+
+  async signInWithEmail() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    if (!email || !pass) {
+      alert('Inserisci email e password');
+      return;
+    }
+    this.showGlobalLoading();
+    try {
+      await auth.signInWithEmailAndPassword(email, pass);
+    } catch (e) {
+      this.hideLoading();
+      alert('Errore: ' + this.getAuthErrorMessage(e.code));
+    }
+  }
+
+  async signUpWithEmail() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value.trim();
+    if (!email || pass.length < 6) {
+      alert('L\'email è obbligatoria e la password deve avere almeno 6 caratteri');
+      return;
+    }
+    this.showGlobalLoading();
+    try {
+      await auth.createUserWithEmailAndPassword(email, pass);
+    } catch (e) {
+      this.hideLoading();
+      alert('Errore registrazione: ' + this.getAuthErrorMessage(e.code));
+    }
+  }
+
+  getAuthErrorMessage(code) {
+    switch(code) {
+      case 'auth/user-not-found': return 'Utente non trovato';
+      case 'auth/wrong-password': return 'Password errata';
+      case 'auth/email-already-in-use': return 'Email già registrata';
+      case 'auth/weak-password': return 'Password troppo debole';
+      case 'auth/invalid-email': return 'Email non valida';
+      default: return code;
+    }
+  }
+
+  showGlobalLoading() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+      loadingOverlay.style.display = 'flex';
+      loadingOverlay.style.opacity = '1';
+    }
   }
 
   showApp(user) {
@@ -394,7 +520,10 @@ class TerapiaApp {
     }
 
     this.elements.closeModalBtns.forEach(btn => {
-      btn.onclick = () => this.elements.entryModal.style.display = 'none';
+      btn.onclick = () => {
+        const modal = btn.closest('.modal-overlay');
+        if (modal) modal.style.display = 'none';
+      };
     });
 
     this.elements.entryTypeRadios.forEach(radio => {
@@ -421,8 +550,8 @@ class TerapiaApp {
     };
 
     window.onclick = (e) => {
-      if (e.target === this.elements.entryModal) {
-        this.elements.entryModal.style.display = 'none';
+      if (e.target.classList.contains('modal-overlay')) {
+        e.target.style.display = 'none';
       }
     };
 

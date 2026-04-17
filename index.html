@@ -21,50 +21,69 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Lucide Icons Library -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Chart.js for visualization -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- SheetJS for Excel import -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-  <!-- Loading Overlay (hidden by default, shown after login) -->
+  <!-- Loading Overlay -->
   <div id="loadingOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:rgba(10,15,30,1); backdrop-filter:blur(20px); align-items:center; justify-content:center; flex-direction:column; gap:2rem; opacity: 1;">
     <div class="loader-container">
       <div class="loader"></div>
       <div class="loader-icon">&#x1F48A;</div>
     </div>
     <div style="text-align:center;">
-      <h2 style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem; letter-spacing:-1px;">Terapia Diabete Tipo 2</h2>
+      <h2 id="loadingAppTitle" style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem; letter-spacing:-1px;">Terapia Diabete Tipo 2</h2>
       <p style="color:#94a3b8; font-size:0.9rem; letter-spacing:1px; text-transform:uppercase;">Inizializzazione in corso...</p>
     </div>
   </div>
 
-  <!-- Login Overlay (visible by default) -->
-  <div id="loginOverlay" style="display:flex; position:fixed; inset:0; z-index:9999; background:rgba(10,15,30,0.98); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
-    <div style="background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:24px; padding:3rem 2.5rem; max-width:400px; width:90%; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
-      <div style="width:72px;height:72px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:2rem;">&#x1F48A;</div>
-      <h2 style="font-size:2rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;">Terapia Diabete Tipo 2</h2>
-      <p style="color:#94a3b8;margin-bottom:2rem;">Accedi con Google per sincronizzare i dati su PC e telefono</p>
-      <button id="googleSignInBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.75rem;padding:0.9rem 1.5rem;border-radius:12px;border:none;background:white;color:#1e293b;font-size:1rem;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:0 4px 15px rgba(0,0,0,0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 15px rgba(0,0,0,0.3)'">
-        <svg width="22" height="22" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+  <!-- Login Overlay -->
+  <div id="loginOverlay" style="display:flex; position:fixed; inset:0; z-index:9999; background:rgba(10,15,30,1); backdrop-filter:blur(20px); align-items:center; justify-content:center;">
+    <div class="glass-panel" style="background:rgba(30,41,59,0.9); border:1px solid rgba(255,255,255,0.1); border-radius:32px; padding:2.5rem; max-width:440px; width:94%; text-align:center; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.2rem;font-size:1.8rem;box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);">
+        <i data-lucide="activity" style="color: white; width: 32px; height: 32px;"></i>
+      </div>
+      <h2 style="font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#6366f1,#a78bfa);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:0.5rem;letter-spacing:-1px;">Personal Terapia</h2>
+      <p style="color:#94a3b8;margin-bottom:1.8rem;font-size:0.9rem;">Accedi per sincronizzare i tuoi dati</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+        <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; font-size: 0.95rem;">
+        <input type="password" id="loginPassword" placeholder="Password" style="width: 100%; padding: 0.8rem 1rem; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; outline: none; font-size: 0.95rem;">
+        
+        <div style="display: flex; gap: 0.6rem; margin-top: 0.2rem;">
+          <button id="emailSignInBtn" class="primary" style="flex: 1.5; justify-content: center; padding: 0.8rem; border-radius: 12px; font-weight: 700;">Accedi</button>
+          <button id="emailSignUpBtn" class="secondary" style="flex: 1; justify-content: center; padding: 0.8rem; border-radius: 12px; font-weight: 700; font-size: 0.85rem;">Registrati</button>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; margin-bottom: 1.5rem; gap: 0.8rem;">
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+        <span style="color: #475569; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;">Oppure</span>
+        <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.08);"></div>
+      </div>
+
+      <button id="googleSignInBtn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:0.75rem;padding:0.85rem 1.2rem;border-radius:12px;border:none;background:white;color:#1e293b;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.2);">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
         Accedi con Google
       </button>
-      <p style="color:#475569;font-size:0.8rem;margin-top:1.5rem;">I tuoi dati sanitari sono privati e accessibili solo a te</p>
     </div>
   </div>
+
   <div class="container">
-    <!-- Header Section -->
     <header>
       <div class="brand">
         <div class="brand-main">
-          <h1 class="gradient-text">Terapia <br class="mobile-break">Diabete Tipo 2</h1>
+          <div style="display: flex; align-items: center; gap: 0.8rem;">
+            <h1 class="gradient-text" id="mainAppTitle" style="cursor: pointer;" title="Clicca per rinominare">Terapia Diabete Tipo 2</h1>
+            <button id="editTitleBtn" class="secondary icon-btn" style="padding: 0.4rem; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+              <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
+            </button>
+          </div>
           <div class="brand-meta">
             <p class="brand-tagline text-secondary">Salute & Benessere</p>
             <div class="app-version-menu" id="appVersionMenu">
@@ -81,9 +100,7 @@
         </div>
       </div>
       
-      <div class="date-picker-container glass-panel" id="datePickerList">
-        <!-- Date items will be injected here -->
-      </div>
+      <div class="date-picker-container glass-panel" id="datePickerList"></div>
       
       <div class="header-controls">
         <div class="actions">
@@ -94,18 +111,12 @@
             <i data-lucide="download"></i>
             <input type="file" id="importInput" style="display: none;" accept=".xlsx, .xls, .csv">
           </button>
-          <button id="syncRepoBtn" class="secondary" title="">
-            <i data-lucide="cloud"></i>
-          </button>
-
-          <button id="addEntryBtn" class="primary" title="Aggiungi nuovo dato">
-            <i data-lucide="plus" style="width: 20px; height: 20px;"></i>
-          </button>
+          <button id="syncRepoBtn" class="secondary" title=""><i data-lucide="cloud"></i></button>
+          <button id="addEntryBtn" class="primary" title="Aggiungi nuovo dato"><i data-lucide="plus" style="width: 20px; height: 20px;"></i></button>
         </div>
       </div>
     </header>
 
-    <!-- Today's Dashboard -->
     <section class="dashboard-grid">
       <div class="stat-card glass-panel">
         <span class="stat-label">Media Glicemica</span>
@@ -126,7 +137,6 @@
       </div>
     </section>
 
-    <!-- Chart Section -->
     <section class="chart-section glass-panel" style="padding: 1.25rem; margin-bottom: 1.5rem;">
       <div class="chart-header">
         <div>
@@ -143,9 +153,7 @@
               <label for="chartEndDate" class="range-label">Al</label>
               <input type="date" id="chartEndDate" class="custom-date-input">
             </div>
-            <button id="applyRangeBtn" class="secondary btn-sm" title="Applica intervallo date">
-              <i data-lucide="filter" style="width: 14px; height: 14px;"></i>
-            </button>
+            <button id="applyRangeBtn" class="secondary btn-sm" title="Applica intervallo date"><i data-lucide="filter" style="width: 14px; height: 14px;"></i></button>
             <div class="filter-btns chart-filter-btns" id="chartScopeBtns" style="margin-left: 0.5rem; gap: 0.3rem;">
               <button class="secondary btn-mini" data-scope="day">Oggi</button>
               <button class="primary btn-mini" data-scope="all">Sempre</button>
@@ -153,22 +161,15 @@
           </div>
         </div>
       </div>
-      <div style="height: 200px; width: 100%;">
-        <canvas id="glucoseChart"></canvas>
-      </div>
+      <div style="height: 200px; width: 100%;"><canvas id="glucoseChart"></canvas></div>
     </section>
 
-    <!-- Data Log Table (Excel style but better) -->
     <section class="log-section glass-panel">
       <div class="log-header">
         <h2 id="logTitle">Storico Completo</h2>
         <div class="log-controls">
-          <button id="exportAllBtn" class="secondary btn-sm" title="Esporta XLSX">
-            <i data-lucide="upload" style="width: 14px;"></i>
-          </button>
-          <button id="deleteAllBtn" class="secondary btn-sm" title="Cancella tutto lo storico" style="color: #f43f5e; border-color: rgba(244, 63, 94, 0.2);">
-            <i data-lucide="trash-2" style="width: 14px;"></i>
-          </button>
+          <button id="exportAllBtn" class="secondary btn-sm" title="Esporta XLSX"><i data-lucide="upload" style="width: 14px;"></i></button>
+          <button id="deleteAllBtn" class="secondary btn-sm" title="Cancella tutto lo storico" style="color: #f43f5e; border-color: rgba(244, 63, 94, 0.2);"><i data-lucide="trash-2" style="width: 14px;"></i></button>
           <div class="filter-btns log-filter-btns">
             <select id="medFilterSelect" class="secondary" style="display: none; padding: 0.25rem 0.5rem; border-radius: 8px; font-size: 0.8rem; border: 1px solid var(--glass-border); background: rgba(30, 41, 59, 0.7); color: var(--text-primary); outline: none;">
               <option value="">Tutti i farmaci</option>
@@ -179,7 +180,6 @@
           </div>
         </div>
       </div>
-      
       <div class="log-table-container">
         <table>
           <thead>
@@ -192,15 +192,35 @@
               <th style="width: 100px; text-align: right;">Azioni</th>
             </tr>
           </thead>
-          <tbody id="log-tbody">
-            <!-- Data will be injected here -->
-          </tbody>
+          <tbody id="log-tbody"></tbody>
         </table>
       </div>
     </section>
   </div>
 
-  <!-- Add Entry Modal -->
+  <!-- Rename Title Modal -->
+  <div class="modal-overlay" id="renameModal">
+    <div class="modal glass-panel">
+      <div class="modal-header">
+        <div>
+          <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Rinomina Terapia</h2>
+          <p class="text-secondary">Assegna un nome personalizzato alla tua terapia</p>
+        </div>
+        <button type="button" class="close-modal"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
+      </div>
+      <form id="renameForm">
+        <div class="form-group">
+          <label>Nome Terapia</label>
+          <input type="text" id="newAppTitle" placeholder="es. Terapia di Mario" required>
+        </div>
+        <div class="modal-actions">
+          <button type="submit" class="primary">Salva Nome</button>
+          <button type="button" class="secondary cancel-btn">Annulla</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="entryModal">
     <div class="modal glass-panel">
       <div class="modal-header">
@@ -208,24 +228,16 @@
           <h2 id="modalTitle" style="font-size: 1.25rem; margin-bottom: 0.25rem;">Nuovo Inserimento</h2>
           <p id="modalSub" class="text-secondary">Aggiungi una lettura o un'assunzione</p>
         </div>
-        <button type="button" class="close-modal">
-          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-        </button>
+        <button type="button" class="close-modal"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
       </div>
-      
       <form id="entryForm">
         <div class="form-group">
           <label>Tipo di Inserimento</label>
           <div class="entry-type-grid">
-            <label class="radio-label glass-panel">
-              <input type="radio" name="type" value="med" checked style="width: auto;"> Farmaco
-            </label>
-            <label class="radio-label glass-panel">
-              <input type="radio" name="type" value="glucose" style="width: auto;"> Glicemia
-            </label>
+            <label class="radio-label glass-panel"><input type="radio" name="type" value="med" checked style="width: auto;"> Farmaco</label>
+            <label class="radio-label glass-panel"><input type="radio" name="type" value="glucose" style="width: auto;"> Glicemia</label>
           </div>
         </div>
-        
         <div class="form-group">
           <label id="value-label">Valore (Glicemia)</label>
           <div class="value-input-row">
@@ -239,13 +251,11 @@
             </datalist>
           </div>
         </div>
-        
         <div class="form-group" id="med-name-group" style="display: none;">
           <label>Nome Farmaco / Dose</label>
           <input type="text" id="medName" placeholder="es. Metformina 500mg" list="medsList" autocomplete="off">
           <datalist id="medsList"></datalist>
         </div>
-        
         <div class="date-time-grid">
           <div class="form-group">
             <label>Data (GG/MM/AAAA)</label>
@@ -266,12 +276,10 @@
             </div>
           </div>
         </div>
-        
         <div class="form-group">
           <label>Note Opzionali</label>
           <input type="text" id="entryNote" placeholder="Aggiungi una breve nota...">
         </div>
-        
         <div class="modal-actions">
           <button type="submit" id="submitBtn" class="primary">Salva Dato</button>
           <button type="button" class="secondary cancel-btn">Annulla</button>
@@ -280,9 +288,6 @@
     </div>
   </div>
   <script src="app.js?v=1001"></script>
-  <script>
-    // Initialize Lucide Icons
-    lucide.createIcons();
-  </script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>
