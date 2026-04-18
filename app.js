@@ -100,6 +100,7 @@ class TerapiaApp {
     this.setupRenameModal();
     this.initFirebase();
     this.initDateRangeFields();
+    this.setupZoomPrevention();
   }
 
   setupRenameModal() {
@@ -126,6 +127,25 @@ class TerapiaApp {
         modal.style.display = 'none';
       }
     };
+  }
+
+  setupZoomPrevention() {
+    // Impedisce lo zoom al doppio tocco su alcuni browser che ignorano il CSS
+    // Nota: touch-action: manipulation nel CSS già copre la maggior parte dei casi
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (event) => {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        // Rimosso preventDefault qui perché potrebbe bloccare click legittimi veloci
+        // Preferiamo affidarci a touch-action: manipulation e al meta tag
+      }
+      lastTouchEnd = now;
+    }, false);
+
+    // Impedisce il pinch-to-zoom (zoom a due dita) su Safari iOS
+    document.addEventListener('gesturestart', (event) => {
+      event.preventDefault();
+    }, { passive: false });
   }
 
   async saveAppTitle(newTitle) {
