@@ -864,7 +864,16 @@ input[type="number"] {
   outline-offset: 2px;
 }
 
-/* Responsive adjustments */
+.brand-tagline {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  #editTitleBtn {
+    display: none !important;
+  }
+}
+
 @media (max-width: 600px) {
   /* Dashboard: 3 cards in una riga compatta */
   .dashboard-grid {
@@ -917,14 +926,6 @@ input[type="number"] {
 
   .mobile-break {
     display: block;
-  }
-
-  header .brand-tagline {
-    display: none !important;
-  }
-
-  #editTitleBtn {
-    display: none !important;
   }
 
   /* Azioni: compatte, niente testo "Sincronizza" */
