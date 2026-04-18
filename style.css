@@ -920,11 +920,11 @@ input[type="number"] {
   }
 
   header .brand-tagline {
-    display: none;
+    display: none !important;
   }
 
   #editTitleBtn {
-    display: none;
+    display: none !important;
   }
 
   /* Azioni: compatte, niente testo "Sincronizza" */
