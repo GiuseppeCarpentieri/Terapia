@@ -442,11 +442,16 @@ header .header-controls {
 
 .chart-header,
 .log-controls,
-.chart-filter-btns,
 .log-filter-btns,
 .value-input-row,
 .row-actions {
   display: flex;
+}
+
+.chart-filter-btns {
+  display: flex;
+  margin-left: 1.5rem;
+  gap: 0.8rem;
 }
 
 .chart-header {
@@ -1282,6 +1287,20 @@ input[type="number"] {
     justify-content: center;
     padding: 0;
     width: 42px;
+  }
+
+  /* Assicura che i bottoni OGGI e SEMPRE siano affiancati su mobile */
+  #chartScopeBtns {
+    grid-column: 1 / -1;
+    margin-left: 0 !important;
+    display: flex !important;
+    gap: 0.5rem !important;
+    width: 100%;
+  }
+
+  #chartScopeBtns button {
+    flex: 1;
+    margin: 0;
   }
 }
 
