@@ -636,6 +636,15 @@ class TerapiaApp {
         }
       });
     }
+
+    // Auto-focus logic for date/time inputs
+    const { entryDay, entryMonth, entryYear, entryHH, entryMM } = this.elements;
+    if (entryDay && entryMonth && entryYear && entryHH && entryMM) {
+      entryDay.addEventListener('input', (e) => { if (e.target.value.length >= 2) entryMonth.focus(); });
+      entryMonth.addEventListener('input', (e) => { if (e.target.value.length >= 2) entryYear.focus(); });
+      entryYear.addEventListener('input', (e) => { if (e.target.value.length >= 4) entryHH.focus(); });
+      entryHH.addEventListener('input', (e) => { if (e.target.value.length >= 2) entryMM.focus(); });
+    }
   }
 
   async installPwa() {
@@ -792,15 +801,15 @@ class TerapiaApp {
     
     let titleText = "Storico Completo";
     if (this.chartScope === 'custom') {
-      const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+      const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
       titleText = `Dati dal ${startStr} al ${endStr}`;
     } else if (this.viewAll && this.entries.length > 0) {
       const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
-      const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
       titleText = `Storico Completo dal ${startDate}`;
     }
-    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}`;
 
     if (this.currentFilter === 'glucose') {
       filteredEntries = filteredEntries.filter(e => e.type === 'glucose');
@@ -851,7 +860,7 @@ class TerapiaApp {
       const isOutOfRange = isGlucose && (parseFloat(entry.value) > GLUCOSE_MAX || parseFloat(entry.value) < GLUCOSE_MIN);
       const medStyle = !isGlucose ? this.getMedBadgeStyle(entry.medName) : null;
       tr.innerHTML = `
-        <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></td>
+        <td data-label="Data"><span class="date-inline-value">${entryDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}</span></td>
         <td data-label="Ora"><span class="time-inline-value">${time}</span></td>
         <td data-label="Tipo"><span class="badge ${isGlucose ? 'badge-glucose' : 'badge-pill'}">${isGlucose ? 'Glicemia' : 'Farmaco'}</span></td>
         <td data-label="Dose">
@@ -1078,8 +1087,10 @@ class TerapiaApp {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
+    // Distruzione sicura dell'istanza precedente
     if (this.elements.glucoseChart) {
       this.elements.glucoseChart.destroy();
+      this.elements.glucoseChart = null;
     }
 
     const data = this.getFilteredEntries();
@@ -1093,43 +1104,45 @@ class TerapiaApp {
       const d = new Date(this.currentDate);
       xMin = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0).getTime();
       xMax = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1, 0, 0, 0).getTime();
-    } else if (this.chartScope === 'custom') {
+    } else if (this.chartScope === 'custom' && this.elements.chartStartDate.value && this.elements.chartEndDate.value) {
       xMin = new Date(this.elements.chartStartDate.value).setHours(0, 0, 0, 0);
       xMax = new Date(this.elements.chartEndDate.value).setHours(23, 59, 59, 999);
     } else if (chartPoints.length > 0) {
       xMin = Math.min(...chartPoints.map(p => p.x));
       xMax = Math.max(...chartPoints.map(p => p.x));
     } else {
-      xMin = Date.now() - 3600000;
-      xMax = Date.now() + 3600000;
+      xMin = Date.now() - 86400000;
+      xMax = Date.now();
     }
+
+    // Buffer di sicurezza se xMin e xMax coincidono
+    if (xMin === xMax) {
+      xMin -= 3600000;
+      xMax += 3600000;
+    }
+
     const yMaxVal = Math.max(200, ...(chartPoints.length > 0 ? chartPoints.map(p => p.y) : [0])) + 20;
 
-    const h = canvas.height;
+    const h = canvas.height || 200;
     const gradBassa = ctx.createLinearGradient(0, h, 0, h * 0.7);
-    gradBassa.addColorStop(0, 'rgba(244, 63, 94, 0.5)');
-    gradBassa.addColorStop(1, 'rgba(244, 63, 94, 0.2)');
+    gradBassa.addColorStop(0, 'rgba(244, 63, 94, 0.4)');
+    gradBassa.addColorStop(1, 'rgba(244, 63, 94, 0.05)');
 
     const gradAlta = ctx.createLinearGradient(0, 0, 0, h * 0.3);
-    gradAlta.addColorStop(0, 'rgba(244, 63, 94, 0.5)');
-    gradAlta.addColorStop(1, 'rgba(244, 63, 94, 0.2)');
+    gradAlta.addColorStop(0, 'rgba(244, 63, 94, 0.4)');
+    gradAlta.addColorStop(1, 'rgba(244, 63, 94, 0.05)');
 
     this.elements.glucoseChart = new Chart(ctx, {
       type: 'line',
       data: {
         datasets: [
           {
-            label: 'Base',
-            data: [{ x: xMin, y: 0 }, { x: xMax, y: 0 }],
-            borderColor: 'transparent', pointRadius: 0, fill: false, tension: 0, z: -2
-          },
-          {
             label: 'Fascia Bassa',
             data: [{ x: xMin, y: GLUCOSE_MIN }, { x: xMax, y: GLUCOSE_MIN }],
-            borderColor: 'rgba(244, 63, 94, 0.25)',
+            borderColor: 'rgba(244, 63, 94, 0.2)',
             borderWidth: 1,
             pointRadius: 0,
-            fill: 0, // Riempie verso la base (0)
+            fill: 'origin',
             backgroundColor: gradBassa,
             tension: 0,
             z: -1
@@ -1137,33 +1150,39 @@ class TerapiaApp {
           {
             label: 'Fascia Ideale',
             data: [{ x: xMin, y: GLUCOSE_MAX }, { x: xMax, y: GLUCOSE_MAX }],
-            borderColor: 'rgba(16, 185, 129, 0.2)',
+            borderColor: 'rgba(16, 185, 129, 0.15)',
             borderWidth: 1,
             pointRadius: 0,
-            fill: 1, // Riempie verso il 70
-            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            fill: 0, 
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0,
             z: -1
           },
           {
             label: 'Fascia Alta',
             data: [{ x: xMin, y: yMaxVal }, { x: xMax, y: yMaxVal }],
-            borderColor: 'rgba(244, 63, 94, 0.2)',
+            borderColor: 'rgba(244, 63, 94, 0.15)',
             borderWidth: 1,
             pointRadius: 0,
-            fill: 2, // Riempie verso il 180
+            fill: 1,
             backgroundColor: gradAlta,
             tension: 0,
             z: -1
           },
           {
-            label: 'Glicemia (mg/dL)', data: chartPoints,
-            borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0, fill: false,
-            pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderWidth: 1,
-            pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
-            pointHoverBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
+            label: 'Glicemia (mg/dL)', 
+            data: chartPoints,
+            borderColor: '#10b981', 
+            backgroundColor: 'transparent', 
+            borderWidth: 2, 
+            tension: 0.1, 
+            fill: false,
+            pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981',
+            pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981',
+            pointRadius: (ctx) => this.chartScope === 'all' ? 1.5 : 4,
             segment: {
               borderColor: (ctx) => {
+                if (!ctx.p1.parsed) return '#10b981';
                 const val = ctx.p1.parsed.y;
                 return (val > GLUCOSE_MAX || val < GLUCOSE_MIN) ? '#f43f5e' : '#10b981';
               }
@@ -1173,31 +1192,39 @@ class TerapiaApp {
         ]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
-        animation: { duration: 1200, easing: 'easeInOutQuart' },
-        interaction: { intersect: false, mode: 'nearest' },
+        responsive: true, 
+        maintainAspectRatio: false,
+        animation: { duration: 800 },
+        interaction: { intersect: false, mode: 'index' },
         plugins: {
           legend: { display: false },
           zoom: {
             zoom: {
-              wheel: { enabled: true },
-              pinch: { enabled: true },
+              wheel: { enabled: this.chartScope !== 'day', speed: 0.05 },
+              pinch: { enabled: this.chartScope !== 'day' },
               mode: 'x',
             },
             pan: {
-              enabled: true,
+              enabled: this.chartScope !== 'day',
               mode: 'x',
+            },
+            limits: {
+              x: {
+                min: xMin,
+                max: xMax,
+                minRange: 1000 * 60 * 15
+              }
             }
           },
           tooltip: {
             filter: (item) => item.dataset.label.includes('Glicemia'),
-            backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', bodyColor: '#fff',
-            borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, padding: 12, boxPadding: 8, usePointStyle: true,
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            padding: 12,
             callbacks: {
               label: (context) => `Glicemia: ${context.parsed.y} mg/dL`,
               title: (context) => {
                 const d = new Date(context[0].parsed.x);
-                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+                return d.toLocaleString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(/\//g, '-');
               }
             }
           }
@@ -1206,20 +1233,10 @@ class TerapiaApp {
           y: {
             min: 0,
             max: yMaxVal,
-            position: 'left',
-            grid: { color: 'rgba(255,255,255,0.05)', lineWidth: 0.3 },
             ticks: {
-              stepSize: 10,
-              autoSkip: false,
+              stepSize: 50,
               color: '#94a3b8',
-              font: { weight: '400', size: 11 },
-              callback: (value) => {
-                const v = Math.round(value);
-                // Nasconde 70 e 180 da sinistra
-                if (v === GLUCOSE_MIN || v === GLUCOSE_MAX) return null;
-                if (v === 0 || v === 400 || v % 50 === 0) return v;
-                return null;
-              }
+              callback: (value) => (value === GLUCOSE_MIN || value === GLUCOSE_MAX) ? null : value
             }
           },
           y1: {
@@ -1228,54 +1245,34 @@ class TerapiaApp {
             position: 'right',
             grid: { display: false },
             ticks: {
-              stepSize: 10,
-              autoSkip: false,
-              align: 'center',
-              crossAlign: 'far',
-              padding: 0,
               color: '#fff',
-              font: { weight: '500', size: 12 },
-              callback: (value) => {
-                const v = Math.round(value);
-                // Mostra SOLO 70 e 180 a destra
-                if (v === GLUCOSE_MIN || v === GLUCOSE_MAX) return v;
-                return null;
-              }
+              font: { weight: 'bold' },
+              callback: (value) => (value === GLUCOSE_MIN || value === GLUCOSE_MAX) ? value : null
             }
           },
           x: {
-            type: 'linear', min: xMin, max: xMax,
-            grid: { color: 'rgba(255,255,255,0.06)', lineWidth: 0.3 },
+            type: 'linear', 
+            min: xMin, 
+            max: xMax,
             ticks: {
               color: '#94a3b8',
               maxRotation: 90,
               minRotation: 90,
               autoSkip: true,
-              maxTicksLimit: this.chartScope === 'day' ? 25 : 20,
+              maxTicksLimit: this.chartScope === 'day' ? 25 : 15,
               stepSize: this.chartScope === 'day' ? 3600000 : undefined,
               callback: (value) => {
                 const d = new Date(value);
                 if (this.chartScope === 'day') {
-                  // Mostriamo solo le ore piene per pulizia ed evitare sovrapposizioni
-                  if (d.getMinutes() === 0) {
-                    return d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-                  }
-                  return null;
+                   return d.getMinutes() === 0 ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : null;
                 }
-                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
               }
             }
           }
         }
       }
     });
-    const { entryDay, entryMonth, entryYear, entryHH, entryMM } = this.elements;
-    if (entryDay && entryMonth && entryYear && entryHH && entryMM) {
-      entryDay.oninput = (e) => { if (e.target.value.length >= 2) entryMonth.focus(); };
-      entryMonth.oninput = (e) => { if (e.target.value.length >= 2) entryYear.focus(); };
-      entryYear.oninput = (e) => { if (e.target.value.length >= 4) entryHH.focus(); };
-      entryHH.oninput = (e) => { if (e.target.value.length >= 2) entryMM.focus(); };
-    }
   }
 
   // ===== CRUD =====
@@ -1396,7 +1393,7 @@ class TerapiaApp {
       .map((entry) => {
         const date = new Date(entry.timestamp);
         return {
-          Data: date.toLocaleDateString('it-IT'),
+          Data: date.toLocaleDateString('it-IT').replace(/\//g, '-'),
           Orario: date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
           Tipo: entry.type === 'glucose' ? 'Glicemia' : 'Farmaco',
           'Valore/Dose': entry.value ?? '',
