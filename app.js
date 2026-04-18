@@ -46,7 +46,9 @@ class TerapiaApp {
       logTitle: document.getElementById('logTitle'),
       entryModal: document.getElementById('entryModal'),
       entryForm: document.getElementById('entryForm'),
-      medFilterSelect: document.getElementById('medFilterSelect'),
+      medFilterSelect: null, 
+      medDropdown: document.getElementById('medDropdown'),
+      medsFilterBtn: document.getElementById('medsFilterBtn'),
       filterBtns: document.querySelectorAll('.filter-btns button'),
       logTbody: document.getElementById('log-tbody'),
       avgGlucose: document.getElementById('avgGlucose'),
@@ -488,38 +490,51 @@ class TerapiaApp {
     this.elements.importBtn.onclick = () => this.elements.importInput.click();
     this.elements.importInput.onchange = (e) => this.handleImport(e);
 
+    // Nuova gestione dropdown farmaci
+    if (this.elements.medsFilterBtn) {
+      this.elements.medsFilterBtn.onclick = (e) => {
+        e.stopPropagation();
+        
+        // Se non era già attivo il filtro meds, attiviamolo
+        const logBtns = Array.from(this.elements.filterBtns).filter(b => b.hasAttribute('data-filter'));
+        logBtns.forEach(b => b.classList.remove('primary', 'filter-active'));
+        logBtns.forEach(b => b.classList.add('secondary'));
+        
+        this.elements.medsFilterBtn.classList.remove('secondary');
+        this.elements.medsFilterBtn.classList.add('primary', 'filter-active');
+        this.currentFilter = 'meds';
+        
+        // Toggle dropdown
+        const isVisible = this.elements.medDropdown.style.display === 'flex';
+        this.elements.medDropdown.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) this.populateMedFilter();
+        
+        this.renderLog();
+      };
+    }
+
+    // Chiudi dropdown al click esterno
+    document.addEventListener('click', (e) => {
+      if (this.elements.medDropdown && !this.elements.medDropdown.contains(e.target) && e.target !== this.elements.medsFilterBtn) {
+        this.elements.medDropdown.style.display = 'none';
+      }
+    });
+
     this.elements.filterBtns.forEach(btn => {
-      if (btn.hasAttribute('data-scope')) return;
+      if (btn.hasAttribute('data-scope') || btn.id === 'medsFilterBtn') return;
       btn.onclick = () => {
         const logBtns = Array.from(this.elements.filterBtns).filter(b => b.hasAttribute('data-filter'));
-        logBtns.forEach(b => b.classList.remove('primary'));
+        logBtns.forEach(b => b.classList.remove('primary', 'filter-active'));
         logBtns.forEach(b => b.classList.add('secondary'));
         btn.classList.remove('secondary');
-        btn.classList.add('primary');
+        btn.classList.add('primary', 'filter-active');
         this.currentFilter = btn.dataset.filter;
-        this.logLimit = 50; // Reset limite quando si cambia filtro
-        if (this.currentFilter === 'meds') {
-          if (this.elements.medFilterSelect) {
-            this.elements.medFilterSelect.style.display = 'block';
-            this.populateMedFilter();
-          }
-        } else {
-          if (this.elements.medFilterSelect) {
-            this.elements.medFilterSelect.style.display = 'none';
-            this.currentMedFilter = '';
-            this.elements.medFilterSelect.value = '';
-          }
-        }
+        this.currentMedFilter = '';
+        if (this.elements.medDropdown) this.elements.medDropdown.style.display = 'none';
         this.renderLog();
       };
     });
 
-    if (this.elements.medFilterSelect) {
-      this.elements.medFilterSelect.onchange = (e) => {
-        this.currentMedFilter = e.target.value;
-        this.renderLog();
-      };
-    }
 
     this.elements.closeModalBtns.forEach(btn => {
       btn.onclick = () => {
@@ -700,12 +715,34 @@ class TerapiaApp {
   }
 
   populateMedFilter() {
-    if (!this.elements.medFilterSelect) return;
+    if (!this.elements.medDropdown) return;
     const names = [...new Set(this.entries.filter(e => e.type === 'med' && e.medName).map(e => e.medName))].sort();
-    const currentVal = this.currentMedFilter;
-    this.elements.medFilterSelect.innerHTML = '<option value="">Tutti i farmaci</option>' +
-      names.map(name => `<option value="${name}">${name}</option>`).join('');
-    this.elements.medFilterSelect.value = currentVal;
+    
+    this.elements.medDropdown.innerHTML = '';
+    
+    const createOption = (label, value) => {
+      const btn = document.createElement('button');
+      btn.className = `dropdown-item ${this.currentMedFilter === value ? 'active' : ''}`;
+      btn.textContent = label;
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        this.currentMedFilter = value;
+        this.elements.medDropdown.style.display = 'none';
+        
+        // Update button text to show active selection
+        const btnText = value === '' ? 'Farmaci' : value;
+        this.elements.medsFilterBtn.innerHTML = `${btnText} <i data-lucide="chevron-down" style="width:12px;"></i>`;
+        lucide.createIcons();
+        
+        this.renderLog();
+      };
+      return btn;
+    };
+
+    this.elements.medDropdown.appendChild(createOption('Tutti i farmaci', ''));
+    names.forEach(name => {
+      this.elements.medDropdown.appendChild(createOption(name, name));
+    });
   }
 
   updateUnitsDataList(type) {

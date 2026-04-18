@@ -18,6 +18,32 @@
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 10px;
+  border: 2px solid var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b var(--bg-dark);
+}
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
@@ -211,14 +237,29 @@ button.secondary {
   cursor: pointer;
 }
 
+button.btn-sm, select.btn-sm {
+  padding: 0.4rem 0.5rem !important;
+  font-size: 0.82rem !important;
+  height: 32px !important;
+  line-height: 1 !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: unset !important;
+  color: var(--text-primary) !important;
+  background-color: #1e293b !important;
+}
+
+select.btn-sm option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
 button.secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
   transform: translateY(-2px);
-}
-
-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.05);
 }
 
 /* Header & Navigation */
@@ -385,6 +426,11 @@ header .header-controls {
   animation: fadeIn 0.6s ease-out;
 }
 
+#logTitle {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .log-header {
   display: flex;
   justify-content: space-between;
@@ -471,8 +517,66 @@ header .header-controls {
 .chart-filter-btns,
 .log-filter-btns,
 .row-actions {
+  display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.log-filter-btns {
+  margin-left: 2.5rem;
+  gap: 1.25rem !important;
+}
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.custom-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 180px;
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.dropdown-item {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.dropdown-item.active {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-primary);
 }
 
 .value-input-row {
@@ -979,15 +1083,16 @@ input[type="number"] {
 
   /* Log header: filtri su due righe */
   .log-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .log-controls {
-    width: 100%;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    width: auto;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
   }
 
   .filter-btns {
@@ -1251,19 +1356,20 @@ input[type="number"] {
   }
 
   .log-controls {
-    width: 100%;
+    width: auto;
     flex-direction: row;
     flex-wrap: nowrap;
-    align-items: stretch;
-    gap: 0.4rem;
+    align-items: center;
+    gap: 0.35rem;
   }
 
   .log-filter-btns {
     flex: 1 1 auto;
     min-width: 0;
     flex-direction: row;
-    flex-wrap: wrap;
-    gap: 0.35rem;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    justify-content: flex-end;
   }
 
   .chart-filter-btns {
@@ -1279,17 +1385,13 @@ input[type="number"] {
   .log-controls > button {
     width: auto;
     flex: 0 0 auto;
-    min-width: 2.5rem;
-    padding: 0.45rem 0.6rem;
     justify-content: center;
   }
 
   .log-filter-btns button {
     width: auto;
-    flex: 1 1 0;
+    flex: 0 0 auto;
     min-width: 0;
-    padding: 0.45rem 0.35rem;
-    font-size: 0.75rem;
     order: 1;
     justify-content: center;
   }
