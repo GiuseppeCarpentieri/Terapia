@@ -86,6 +86,8 @@ class TerapiaApp {
 
     this.viewAll = true;
     this.chartScope = 'all';
+    this.lastChartScope = 'all';
+    this.hasScrolled = false;
     this.currentMedFilter = '';
     this.editingId = null;
     this.appTitle = 'Terapia Diabete Tipo 2';
@@ -1157,7 +1159,7 @@ class TerapiaApp {
           {
             label: 'Glicemia (mg/dL)', data: chartPoints,
             borderColor: '#10b981', backgroundColor: 'transparent', borderWidth: 1.5, tension: 0, fill: false,
-            pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#fff', pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderWidth: 1,
+            pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointBorderWidth: 1,
             pointRadius: this.chartScope === 'all' ? 1.5 : 3, pointHoverRadius: this.chartScope === 'all' ? 3 : 5,
             pointHoverBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2,
             segment: {
@@ -1173,10 +1175,22 @@ class TerapiaApp {
       options: {
         responsive: true, maintainAspectRatio: false,
         animation: { duration: 1200, easing: 'easeInOutQuart' },
-        interaction: { intersect: false, mode: 'index' },
+        interaction: { intersect: false, mode: 'nearest' },
         plugins: {
           legend: { display: false },
+          zoom: {
+            zoom: {
+              wheel: { enabled: true },
+              pinch: { enabled: true },
+              mode: 'x',
+            },
+            pan: {
+              enabled: true,
+              mode: 'x',
+            }
+          },
           tooltip: {
+            filter: (item) => item.dataset.label.includes('Glicemia'),
             backgroundColor: 'rgba(15, 23, 42, 0.9)', titleColor: '#fff', bodyColor: '#fff',
             borderColor: 'rgba(255, 255, 255, 0.1)', borderWidth: 1, padding: 12, boxPadding: 8, usePointStyle: true,
             callbacks: {
