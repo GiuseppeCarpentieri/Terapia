@@ -860,13 +860,14 @@ class TerapiaApp {
     if (this.chartScope === 'custom') {
       const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
       const endStr = new Date(this.elements.chartEndDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-      titleText = `Dati dal ${startStr} al ${endStr}`;
+      titleText = `Dati <span class="log-subtitle">dal ${startStr} al ${endStr}</span>`;
     } else if (this.viewAll && this.entries.length > 0) {
       const minTimestamp = Math.min(...this.entries.map(e => e.timestamp));
       const startDate = new Date(minTimestamp).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
-      titleText = `Storico Completo dal ${startDate}`;
+      titleText = `Storico Completo <span class="log-subtitle">dal ${startDate}</span>`;
     }
-    this.elements.logTitle.innerText = this.viewAll ? titleText : `Dati del ${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}`;
+    const currentTitle = this.viewAll ? titleText : `Dati del <span class="log-subtitle">${this.currentDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}</span>`;
+    this.elements.logTitle.innerHTML = currentTitle;
 
     if (this.currentFilter === 'glucose') {
       filteredEntries = filteredEntries.filter(e => e.type === 'glucose');
