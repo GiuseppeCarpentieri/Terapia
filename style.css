@@ -1307,10 +1307,11 @@ input[type="number"] {
     width: 100%;
     display: grid;
     grid-template-columns: 1fr 1fr auto;
-    gap: 0.5rem;
+    grid-template-rows: auto auto;
+    gap: 0.4rem 0.5rem;
     padding: 0.6rem 0.8rem;
     border-radius: 16px;
-    align-items: end;
+    align-items: center; /* centra verticalmente il bottone con gli input */
   }
 
   .range-group {
@@ -1333,20 +1334,22 @@ input[type="number"] {
   }
 
   #applyRangeBtn {
-    height: 32px;
-    width: 32px;
+    height: 36px;
+    width: 36px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    margin-bottom: 0;
-    align-self: end;
+    align-self: center;
+    grid-column: 3;
+    grid-row: 1;
   }
 
   /* Assicura che i bottoni OGGI e SEMPRE siano affiancati su mobile */
   #chartScopeBtns {
     grid-column: 1 / -1;
+    grid-row: 2;
     margin-left: 0 !important;
     display: flex !important;
     gap: 0.5rem !important;
