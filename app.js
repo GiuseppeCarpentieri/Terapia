@@ -46,7 +46,7 @@ class TerapiaApp {
       logTitle: document.getElementById('logTitle'),
       entryModal: document.getElementById('entryModal'),
       entryForm: document.getElementById('entryForm'),
-      medFilterSelect: null, 
+      medFilterSelect: null,
       medDropdown: document.getElementById('medDropdown'),
       medsFilterBtn: document.getElementById('medsFilterBtn'),
       filterBtns: document.querySelectorAll('.filter-btns button'),
@@ -92,7 +92,7 @@ class TerapiaApp {
     this.hasScrolled = false;
     this.currentMedFilter = '';
     this.editingId = null;
-    this.appTitle = 'Terapia Diabete Tipo 2';
+    this.appTitle = 'APP Terapia Medica';
     this.renderAppVersion();
     this.setupVersionToggle();
     this.setupPwaInstall();
@@ -198,7 +198,7 @@ class TerapiaApp {
             await reg.unregister();
           }
         }
-        
+
         // 2. Clear Caches
         if (window.caches) {
           const keys = await caches.keys();
@@ -220,7 +220,7 @@ class TerapiaApp {
     if (this.elements.chartStartDate && this.elements.chartEndDate) {
       const today = new Date();
       const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      
+
       this.elements.chartStartDate.value = firstOfMonth.toISOString().split('T')[0];
       this.elements.chartEndDate.value = today.toISOString().split('T')[0];
     }
@@ -297,7 +297,7 @@ class TerapiaApp {
     auth.onAuthStateChanged(user => {
       if (user) {
         this.currentUserId = user.uid;
-        
+
         // Show loading screen
         const loadingOverlay = document.getElementById('loadingOverlay');
         if (loadingOverlay) {
@@ -324,8 +324,8 @@ class TerapiaApp {
 
     loadingOverlay.style.opacity = '0';
     setTimeout(() => {
-        loadingOverlay.style.display = 'none';
-        loadingOverlay.style.opacity = '1'; // Reset for next use
+      loadingOverlay.style.display = 'none';
+      loadingOverlay.style.opacity = '1'; // Reset for next use
     }, 500);
   }
 
@@ -333,10 +333,10 @@ class TerapiaApp {
     // If not logged in, we ensure the login overlay is visible and the loading is gone
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'none';
-    
+
     document.getElementById('loginOverlay').style.display = 'flex';
     this.updateSyncRepoButton();
-    
+
     // Auth Handlers
     const googleBtn = document.getElementById('googleSignInBtn');
     if (googleBtn) googleBtn.onclick = () => this.signInWithGoogle();
@@ -381,7 +381,7 @@ class TerapiaApp {
   }
 
   getAuthErrorMessage(code) {
-    switch(code) {
+    switch (code) {
       case 'auth/user-not-found': return 'Utente non trovato';
       case 'auth/wrong-password': return 'Password errata';
       case 'auth/email-already-in-use': return 'Email già registrata';
@@ -445,7 +445,7 @@ class TerapiaApp {
         this.entries = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
         this.updateUI();
         this.checkLocalStorageMigration();
-        
+
         this.hideLoading();
       }, error => {
         console.error('Firestore error:', error);
@@ -496,7 +496,7 @@ class TerapiaApp {
       this.elements.entryDay.value = this.currentDate.getDate().toString().padStart(2, '0');
       this.elements.entryMonth.value = (this.currentDate.getMonth() + 1).toString().padStart(2, '0');
       this.elements.entryYear.value = this.currentDate.getFullYear();
-      
+
       const now = new Date();
       this.elements.entryHH.value = now.getHours().toString().padStart(2, '0');
       this.elements.entryMM.value = now.getMinutes().toString().padStart(2, '0');
@@ -514,21 +514,21 @@ class TerapiaApp {
     if (this.elements.medsFilterBtn) {
       this.elements.medsFilterBtn.onclick = (e) => {
         e.stopPropagation();
-        
+
         // Se non era già attivo il filtro meds, attiviamolo
         const logBtns = Array.from(this.elements.filterBtns).filter(b => b.hasAttribute('data-filter'));
         logBtns.forEach(b => b.classList.remove('primary', 'filter-active'));
         logBtns.forEach(b => b.classList.add('secondary'));
-        
+
         this.elements.medsFilterBtn.classList.remove('secondary');
         this.elements.medsFilterBtn.classList.add('primary', 'filter-active');
         this.currentFilter = 'meds';
-        
+
         // Toggle dropdown
         const isVisible = this.elements.medDropdown.style.display === 'flex';
         this.elements.medDropdown.style.display = isVisible ? 'none' : 'flex';
         if (!isVisible) this.populateMedFilter();
-        
+
         this.renderLog();
       };
     }
@@ -602,7 +602,7 @@ class TerapiaApp {
           if (now - lastAutoOpen < 300) return;
           lastAutoOpen = now;
           if (typeof el.showPicker === 'function') {
-            try { el.showPicker(); } catch(e) {}
+            try { el.showPicker(); } catch (e) { }
           }
         };
         el.addEventListener('click', autoOpen);
@@ -641,10 +641,10 @@ class TerapiaApp {
         }
         this.chartScope = 'custom';
         this.viewAll = true; // Use global entries but filtered by date in the UI methods
-        
+
         this.elements.chartScopeBtns.forEach(b => b.classList.remove('primary'));
         this.elements.chartScopeBtns.forEach(b => b.classList.add('secondary'));
-        
+
         this.elements.chartSub.innerText = `Dati dal ${new Date(start).toLocaleDateString('it-IT')} al ${new Date(end).toLocaleDateString('it-IT')}`;
         this.updateDashboard();
         this.renderLog();
@@ -737,9 +737,9 @@ class TerapiaApp {
   populateMedFilter() {
     if (!this.elements.medDropdown) return;
     const names = [...new Set(this.entries.filter(e => e.type === 'med' && e.medName).map(e => e.medName))].sort();
-    
+
     this.elements.medDropdown.innerHTML = '';
-    
+
     const createOption = (label, value) => {
       const btn = document.createElement('button');
       btn.className = `dropdown-item ${this.currentMedFilter === value ? 'active' : ''}`;
@@ -748,12 +748,12 @@ class TerapiaApp {
         e.stopPropagation();
         this.currentMedFilter = value;
         this.elements.medDropdown.style.display = 'none';
-        
+
         // Update button text to show active selection
         const btnText = value === '' ? 'Farmaci' : value;
         this.elements.medsFilterBtn.innerHTML = `${btnText} <i data-lucide="chevron-down" style="width:12px;"></i>`;
         lucide.createIcons();
-        
+
         this.renderLog();
       };
       return btn;
@@ -777,35 +777,35 @@ class TerapiaApp {
     if (!this.elements.datePickerList) return;
     const dateSet = new Set();
     const today = new Date();
-    today.setHours(0,0,0,0);
-    
+    today.setHours(0, 0, 0, 0);
+
     // Periodo di interesse: 15 giorni fa -> 7 giorni dopo
     const minDay = new Date(today);
     minDay.setDate(minDay.getDate() - 15);
     const maxDay = new Date(today);
     maxDay.setDate(maxDay.getDate() + 7);
 
-    for(let i = -15; i <= 7; i++) {
+    for (let i = -15; i <= 7; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() + i);
       dateSet.add(d.toDateString());
     }
-    
+
     // Aggiungi la data corrente se fuori range
     dateSet.add(this.currentDate.toDateString());
-    
+
     // Aggiungi date rilevanti recenti (ultimi 30 giorni) o selezionate
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    this.entries.forEach(e => { 
+
+    this.entries.forEach(e => {
       const et = new Date(e.timestamp);
       if (et >= thirtyDaysAgo || et.toDateString() === this.currentDate.toDateString()) {
-        dateSet.add(et.toDateString()); 
+        dateSet.add(et.toDateString());
       }
     });
 
-    const sortedDates = Array.from(dateSet).map(ds => new Date(ds)).sort((a,b) => a - b);
+    const sortedDates = Array.from(dateSet).map(ds => new Date(ds)).sort((a, b) => a - b);
     this.elements.datePickerList.innerHTML = '';
     sortedDates.forEach(date => {
       const isToday = date.toDateString() === today.toDateString();
@@ -848,14 +848,14 @@ class TerapiaApp {
     let filteredEntries;
     if (this.chartScope === 'custom' && this.elements.chartStartDate.value && this.elements.chartEndDate.value) {
       const startObj = new Date(this.elements.chartStartDate.value);
-      startObj.setHours(0,0,0,0);
+      startObj.setHours(0, 0, 0, 0);
       const endObj = new Date(this.elements.chartEndDate.value);
-      endObj.setHours(23,59,59,999);
+      endObj.setHours(23, 59, 59, 999);
       filteredEntries = this.entries.filter(e => e.timestamp >= startObj.getTime() && e.timestamp <= endObj.getTime());
     } else {
       filteredEntries = this.viewAll ? [...this.entries] : this.getEntriesForDate(this.currentDate);
     }
-    
+
     let titleText = "Storico Completo";
     if (this.chartScope === 'custom') {
       const startStr = new Date(this.elements.chartStartDate.value).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
@@ -881,7 +881,7 @@ class TerapiaApp {
     filteredEntries.sort((a, b) => b.timestamp - a.timestamp);
     const totalFiltered = filteredEntries.length;
     const entriesToShow = filteredEntries.slice(0, this.logLimit);
-    
+
     this.elements.logTbody.innerHTML = '';
 
     if (filteredEntries.length === 0) {
@@ -971,7 +971,7 @@ class TerapiaApp {
     document.querySelectorAll('.delete-btn').forEach(btn => {
       btn.onclick = () => this.deleteEntry(btn.dataset.id);
     });
-    
+
     // Recalibrate sticky headers after rendering
     this.syncStickyHeaders();
   }
@@ -980,14 +980,14 @@ class TerapiaApp {
     const mainHeader = document.querySelector('header');
     const logHeader = document.querySelector('.log-header');
     const thead = document.querySelector('.log-table-container thead');
-    
+
     if (!mainHeader || !logHeader || !thead) return;
-    
+
     // Use requestAnimationFrame to ensure we measure after layout
     requestAnimationFrame(() => {
       const headerHeight = mainHeader.offsetHeight;
       logHeader.style.setProperty('top', `${headerHeight}px`, 'important');
-      
+
       const logHeaderHeight = logHeader.offsetHeight;
       thead.style.setProperty('top', `${headerHeight + logHeaderHeight - 1}px`, 'important');
     });
@@ -1079,12 +1079,12 @@ class TerapiaApp {
       const startStr = this.elements.chartStartDate.value;
       const endStr = this.elements.chartEndDate.value;
       if (!startStr || !endStr) return this.entries;
-      
+
       const start = new Date(startStr);
       start.setHours(0, 0, 0, 0);
       const end = new Date(endStr);
       end.setHours(23, 59, 59, 999);
-      
+
       return this.entries.filter(e => {
         const d = new Date(e.timestamp);
         return d >= start && d <= end;
@@ -1211,7 +1211,7 @@ class TerapiaApp {
             borderColor: 'rgba(16, 185, 129, 0.15)',
             borderWidth: 1,
             pointRadius: 0,
-            fill: 0, 
+            fill: 0,
             backgroundColor: 'rgba(16, 185, 129, 0.1)',
             tension: 0,
             z: -1
@@ -1228,12 +1228,12 @@ class TerapiaApp {
             z: -1
           },
           {
-            label: 'Glicemia (mg/dL)', 
+            label: 'Glicemia (mg/dL)',
             data: chartPoints,
-            borderColor: '#10b981', 
-            backgroundColor: 'transparent', 
-            borderWidth: 2, 
-            tension: 0.1, 
+            borderColor: '#10b981',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            tension: 0.1,
             fill: false,
             pointBackgroundColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981',
             pointBorderColor: (ctx) => (ctx.raw && (ctx.raw.y > GLUCOSE_MAX || ctx.raw.y < GLUCOSE_MIN)) ? '#f43f5e' : '#10b981',
@@ -1250,7 +1250,7 @@ class TerapiaApp {
         ]
       },
       options: {
-        responsive: true, 
+        responsive: true,
         maintainAspectRatio: false,
         animation: { duration: 800 },
         interaction: { intersect: false, mode: 'index' },
@@ -1309,8 +1309,8 @@ class TerapiaApp {
             }
           },
           x: {
-            type: 'linear', 
-            min: xMin, 
+            type: 'linear',
+            min: xMin,
             max: xMax,
             ticks: {
               color: '#94a3b8',
@@ -1322,7 +1322,7 @@ class TerapiaApp {
               callback: (value) => {
                 const d = new Date(value);
                 if (this.chartScope === 'day') {
-                   return d.getMinutes() === 0 ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : null;
+                  return d.getMinutes() === 0 ? d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }) : null;
                 }
                 return d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
               }
@@ -1485,8 +1485,8 @@ class TerapiaApp {
     reader.onload = async (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { 
-          type: 'array', 
+        const workbook = XLSX.read(data, {
+          type: 'array',
           cellDates: true,
           cellNF: false,
           cellText: false
@@ -1494,7 +1494,7 @@ class TerapiaApp {
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
         if (jsonData.length === 0) { this.showToast('Il file è vuoto', 'error'); return; }
-        
+
         const importedEntries = this.mapJsonToEntries(jsonData);
         if (importedEntries.length > 0) {
           for (let i = 0; i < importedEntries.length; i += 400) {
@@ -1509,8 +1509,8 @@ class TerapiaApp {
           this.showToast(`${importedEntries.length} nuovi dati importati!`);
         } else {
           // Controlliamo se jsonData aveva righe ma importedEntries è 0
-          const msg = jsonData.length > 0 ? 
-            'Nessun nuovo dato compatibile trovato (forse duplicati o colonne errate).' : 
+          const msg = jsonData.length > 0 ?
+            'Nessun nuovo dato compatibile trovato (forse duplicati o colonne errate).' :
             'Nessun dato trovato nel file.';
           this.showToast(msg, 'info');
         }
@@ -1601,34 +1601,34 @@ class TerapiaApp {
     return results;
   }
 
-    getMedBadgeStyle(medName) {
+  getMedBadgeStyle(medName) {
     const name = (medName || '').toLowerCase();
-    
+
     // Insuline - Rosa (Vibrante)
     if (name.includes('toujeo') || name.includes('insul') || name.includes('lantus') || name.includes('humalog')) {
       return { bg: 'rgba(236, 72, 153, 0.12)', color: '#f9a8d4', border: 'rgba(236, 72, 153, 0.2)' };
     }
-    
+
     // Antidiabetici orali (SGLT2i / Altri) - Arancio/Ambra
     if (name.includes('invokana') || name.includes('jardiance') || name.includes('forxiga')) {
       return { bg: 'rgba(245, 158, 11, 0.12)', color: '#fcd34d', border: 'rgba(245, 158, 11, 0.2)' };
     }
-    
+
     // Mounjaro / GLP-1 - Smeraldo (Salute metabolica)
     if (name.includes('mounjaro') || name.includes('ozempic') || name.includes('wegovy') || name.includes('trulicity')) {
       return { bg: 'rgba(16, 185, 129, 0.15)', color: '#6ee7b7', border: 'rgba(16, 185, 129, 0.25)' };
     }
-    
+
     // Tovastibe / Statine / Colesterolo - Ciano/Azzurro
     if (name.includes('tovastibe') || name.includes('tavastibe') || name.includes('atorvast') || name.includes('ezetim')) {
-       return { bg: 'rgba(6, 182, 212, 0.15)', color: '#67e8f9', border: 'rgba(6, 182, 212, 0.25)' };
+      return { bg: 'rgba(6, 182, 212, 0.15)', color: '#67e8f9', border: 'rgba(6, 182, 212, 0.25)' };
     }
 
     // Metformina e simili - Viola
     if (name.includes('metformin') || name.includes('janumet')) {
       return { bg: 'rgba(139, 92, 246, 0.12)', color: '#c4b5fd', border: 'rgba(139, 92, 246, 0.2)' };
     }
-    
+
     // Default - Indaco
     return { bg: 'rgba(99, 102, 241, 0.12)', color: '#a5b4fc', border: 'rgba(99, 102, 241, 0.2)' };
   }
@@ -1637,7 +1637,7 @@ class TerapiaApp {
     return `${e.timestamp}_${e.type}_${e.value}_${e.medName || ''}`;
   }
 
-parseExcelDate(val) {
+  parseExcelDate(val) {
     if (val instanceof Date) return val;
     if (typeof val === 'number') return new Date(Math.round((val - 25569) * 86400 * 1000));
     if (typeof val === 'string') {
