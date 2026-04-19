@@ -1133,16 +1133,25 @@ input[type="number"] {
     gap: 0.5rem;
     width: 100%;
     margin-left: 0 !important;
+    align-items: stretch;
   }
 
-  .log-filter-btns > button, 
-  .log-filter-btns .dropdown-container {
-    flex: 1;
+  .log-filter-btns > button,
+  .log-filter-btns > .dropdown-container {
+    flex: 1 1 0;
+    min-width: 0;
   }
 
-  .log-filter-btns button {
-    justify-content: center;
+  .log-filter-btns > .dropdown-container > button,
+  .log-filter-btns > button {
     width: 100%;
+    justify-content: center;
+    height: 32px;
+    padding: 0 0.4rem !important;
+    font-size: 0.82rem !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .filter-btns {
