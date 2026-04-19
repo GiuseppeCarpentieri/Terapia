@@ -3,7 +3,7 @@
  * Sincronizzazione real-time su tutti i dispositivi.
  */
 
-const APP_VERSION = 'v2026.04.17.001';
+const APP_VERSION = 'v2026.04.19.001';
 
 // ===== COSTANTI DI RIFERIMENTO =====
 const GLUCOSE_MIN = 70;
