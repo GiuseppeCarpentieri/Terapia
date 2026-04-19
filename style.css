@@ -1310,6 +1310,7 @@ input[type="number"] {
     gap: 0.5rem;
     padding: 0.6rem 0.8rem;
     border-radius: 16px;
+    align-items: end;
   }
 
   .range-group {
@@ -1332,13 +1333,15 @@ input[type="number"] {
   }
 
   #applyRangeBtn {
-    height: 100%;
-    aspect-ratio: 1/1;
+    height: 32px;
+    width: 32px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    width: 42px;
+    margin-bottom: 0;
+    align-self: end;
   }
 
   /* Assicura che i bottoni OGGI e SEMPRE siano affiancati su mobile */
