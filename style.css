@@ -516,6 +516,7 @@ header .header-controls {
   width: auto;
   cursor: pointer;
   transition: var(--transition-smooth);
+  color-scheme: dark;
 }
 
 .custom-date-input:focus {
