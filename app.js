@@ -219,10 +219,11 @@ class TerapiaApp {
   initDateRangeFields() {
     if (this.elements.chartStartDate && this.elements.chartEndDate) {
       const today = new Date();
-      const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const pad = n => String(n).padStart(2, '0');
+      const toLocalISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
-      this.elements.chartStartDate.value = firstOfMonth.toISOString().split('T')[0];
-      this.elements.chartEndDate.value = today.toISOString().split('T')[0];
+      this.elements.chartStartDate.value = toLocalISO(new Date(today.getFullYear(), 0, 1));
+      this.elements.chartEndDate.value = toLocalISO(today);
     }
   }
 
